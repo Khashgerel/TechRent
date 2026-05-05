@@ -1,0 +1,1560 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ТекРент — Платформ</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #1a56db;
+    --primary-dark: #1239a0;
+    --primary-light: #e8f0fe;
+    --accent: #f59e0b;
+    --success: #10b981;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --bg: #f4f6fb;
+    --surface: #ffffff;
+    --surface2: #f8f9fc;
+    --border: rgba(0,0,0,0.08);
+    --border2: rgba(0,0,0,0.14);
+    --text: #111827;
+    --text2: #4b5563;
+    --text3: #9ca3af;
+    --sidebar-w: 220px;
+    --font: 'Manrope', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+    --radius: 10px;
+    --radius-lg: 14px;
+    --shadow: 0 1px 4px rgba(0,0,0,0.07), 0 4px 16px rgba(0,0,0,0.05);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+
+  /* ─── TOP BAR ─── */
+  .topbar {
+    height: 56px; background: var(--surface); border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; padding: 0 24px; gap: 16px;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .topbar-logo { font-size: 18px; font-weight: 800; color: var(--primary); letter-spacing: -0.5px; }
+  .topbar-logo span { color: var(--accent); }
+  .module-tabs { display: flex; gap: 4px; margin-left: 24px; }
+  .module-tab {
+    padding: 6px 14px; border-radius: 8px; font-size: 13px; font-weight: 600;
+    cursor: pointer; border: none; background: transparent; color: var(--text2);
+    transition: all 0.15s;
+  }
+  .module-tab:hover { background: var(--surface2); color: var(--text); }
+  .module-tab.active { background: var(--primary); color: #fff; }
+  .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  .notif-btn {
+    width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border);
+    background: var(--surface); display: flex; align-items: center; justify-content: center;
+    cursor: pointer; position: relative; font-size: 16px;
+  }
+  .notif-dot { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; background: var(--danger); border-radius: 50%; border: 2px solid var(--surface); }
+  .user-avatar {
+    width: 36px; height: 36px; border-radius: 50%; background: var(--primary);
+    display: flex; align-items: center; justify-content: center; color: #fff;
+    font-size: 13px; font-weight: 700; cursor: pointer;
+  }
+
+  /* ─── LAYOUT ─── */
+  .app-body { display: flex; flex: 1; }
+  .sidebar {
+    width: var(--sidebar-w); background: var(--surface); border-right: 1px solid var(--border);
+    padding: 16px 0; display: flex; flex-direction: column; gap: 4px;
+    position: sticky; top: 56px; height: calc(100vh - 56px); overflow-y: auto;
+  }
+  .sidebar-section { padding: 8px 16px 4px; font-size: 10px; font-weight: 700; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; }
+  .sidebar-item {
+    display: flex; align-items: center; gap: 10px; padding: 9px 16px;
+    font-size: 13.5px; font-weight: 500; color: var(--text2); cursor: pointer;
+    border-radius: 0; border: none; background: transparent; width: 100%; text-align: left;
+    transition: all 0.12s; border-left: 3px solid transparent;
+  }
+  .sidebar-item:hover { background: var(--surface2); color: var(--text); }
+  .sidebar-item.active { background: var(--primary-light); color: var(--primary); border-left-color: var(--primary); font-weight: 700; }
+  .sidebar-item .icon { font-size: 16px; width: 20px; text-align: center; }
+  .sidebar-badge {
+    margin-left: auto; background: var(--primary); color: #fff;
+    font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 20px;
+  }
+
+  .main { flex: 1; padding: 28px 32px; overflow-y: auto; }
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ─── COMPONENTS ─── */
+  .page-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+  .page-title { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+  .page-subtitle { font-size: 13px; color: var(--text2); }
+  .back-btn {
+    width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--surface); cursor: pointer; display: flex; align-items: center;
+    justify-content: center; font-size: 14px; color: var(--text2);
+  }
+
+  .btn {
+    padding: 9px 18px; border-radius: var(--radius); font-size: 13.5px; font-weight: 600;
+    cursor: pointer; border: none; transition: all 0.15s; font-family: var(--font);
+  }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { background: var(--primary-dark); }
+  .btn-outline { background: transparent; border: 1.5px solid var(--border2); color: var(--text2); }
+  .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+  .btn-success { background: var(--success); color: #fff; }
+  .btn-danger { background: var(--danger); color: #fff; }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+  .badge {
+    display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 700;
+  }
+  .badge-success { background: #d1fae5; color: #065f46; }
+  .badge-danger { background: #fee2e2; color: #991b1b; }
+  .badge-warning { background: #fef3c7; color: #92400e; }
+  .badge-info { background: #dbeafe; color: #1e40af; }
+  .badge-gray { background: #f3f4f6; color: #374151; }
+
+  .card {
+    background: var(--surface); border-radius: var(--radius-lg);
+    border: 1px solid var(--border); box-shadow: var(--shadow);
+  }
+  .card-body { padding: 20px; }
+
+  .stat-card {
+    background: var(--surface); border-radius: var(--radius-lg);
+    border: 1px solid var(--border); padding: 20px;
+    box-shadow: var(--shadow);
+  }
+  .stat-label { font-size: 12px; color: var(--text3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat-value { font-size: 28px; font-weight: 800; letter-spacing: -1px; margin-top: 4px; }
+  .stat-change { font-size: 12px; margin-top: 4px; }
+  .stat-change.up { color: var(--success); }
+  .stat-change.down { color: var(--danger); }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .grid-auto { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+
+  /* ─── EQUIPMENT CARD ─── */
+  .equip-card {
+    background: var(--surface); border-radius: var(--radius-lg);
+    border: 1px solid var(--border); overflow: hidden; box-shadow: var(--shadow);
+    transition: transform 0.15s, box-shadow 0.15s; cursor: pointer;
+  }
+  .equip-card:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+  .equip-img {
+    height: 160px; background: linear-gradient(135deg, #1a3a6b, #2a5298);
+    display: flex; align-items: center; justify-content: center; font-size: 56px;
+  }
+  .equip-body { padding: 14px 16px; }
+  .equip-name { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .equip-loc { font-size: 12px; color: var(--text2); margin-bottom: 10px; }
+  .equip-footer { display: flex; align-items: center; justify-content: space-between; }
+  .equip-price { font-size: 15px; font-weight: 800; color: var(--primary); }
+
+  /* ─── TABLE ─── */
+  .table-wrap { background: var(--surface); border-radius: var(--radius-lg); border: 1px solid var(--border); overflow: hidden; box-shadow: var(--shadow); }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  thead { background: var(--surface2); }
+  thead th { padding: 12px 16px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text3); text-align: left; border-bottom: 1px solid var(--border); }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; cursor: pointer; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--surface2); }
+  td { padding: 13px 16px; color: var(--text); }
+  td.mono { font-family: var(--mono); font-size: 12px; color: var(--text2); }
+
+  /* ─── FORM ─── */
+  .form-group { margin-bottom: 18px; }
+  .form-label { display: block; font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 6px; }
+  .form-control {
+    width: 100%; padding: 10px 14px; border: 1.5px solid var(--border2);
+    border-radius: var(--radius); font-size: 14px; font-family: var(--font);
+    background: var(--surface); color: var(--text); outline: none;
+    transition: border-color 0.15s;
+  }
+  .form-control:focus { border-color: var(--primary); }
+  select.form-control { cursor: pointer; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  /* ─── CALENDAR ─── */
+  .cal-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+  .cal-month { font-size: 16px; font-weight: 700; }
+  .cal-nav { display: flex; gap: 8px; }
+  .cal-nav-btn { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
+  .cal-dow { text-align: center; padding: 10px 4px; font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; }
+  .cal-day {
+    text-align: center; padding: 12px 4px; font-size: 13px; cursor: pointer;
+    border-radius: 8px; margin: 2px; position: relative; transition: background 0.1s;
+  }
+  .cal-day:hover { background: var(--surface2); }
+  .cal-day.other-month { color: var(--text3); }
+  .cal-day.has-event::after {
+    content: ''; position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%);
+    width: 6px; height: 6px; border-radius: 50%; background: var(--primary);
+  }
+  .cal-day.today { background: var(--primary); color: #fff; font-weight: 700; }
+  .cal-day.today::after { background: var(--accent); }
+
+  /* ─── NOTIFICATION ─── */
+  .notif-item { display: flex; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.1s; }
+  .notif-item:hover { background: var(--surface2); }
+  .notif-item:last-child { border-bottom: none; }
+  .notif-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .notif-icon.new-order { background: #dbeafe; }
+  .notif-icon.payment { background: #d1fae5; }
+  .notif-icon.system { background: #fef3c7; }
+  .notif-content { flex: 1; }
+  .notif-title { font-size: 13.5px; font-weight: 600; }
+  .notif-time { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .notif-unread { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); margin-top: 6px; flex-shrink: 0; }
+
+  /* ─── PROFILE ─── */
+  .profile-header { display: flex; align-items: center; gap: 20px; padding: 24px; border-bottom: 1px solid var(--border); }
+  .profile-avatar { width: 80px; height: 80px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 28px; font-weight: 700; }
+  .profile-stars { color: var(--accent); font-size: 16px; }
+  .profile-meta-item { display: flex; justify-content: space-between; padding: 12px 24px; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .profile-meta-item .meta-key { color: var(--text2); }
+  .profile-meta-item .meta-val { font-weight: 600; }
+
+  /* ─── PROGRESS BAR ─── */
+  .progress-wrap { background: var(--surface2); border-radius: 6px; height: 8px; overflow: hidden; }
+  .progress-bar { height: 100%; border-radius: 6px; background: var(--primary); transition: width 0.6s; }
+
+  /* ─── CHART (CSS) ─── */
+  .bar-chart { display: flex; align-items: flex-end; gap: 8px; height: 120px; padding: 0 8px; }
+  .bar-col { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; }
+  .bar { width: 100%; border-radius: 6px 6px 0 0; background: var(--primary); min-height: 4px; transition: height 0.6s; }
+  .bar-label { font-size: 10px; color: var(--text3); font-weight: 600; }
+
+  /* ─── TOAST ─── */
+  .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
+  .toast {
+    background: var(--text); color: #fff; padding: 12px 20px; border-radius: 10px;
+    font-size: 13.5px; font-weight: 500; box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    animation: slideIn 0.3s ease; max-width: 320px;
+  }
+  .toast.success { background: #065f46; }
+  .toast.error { background: #991b1b; }
+  @keyframes slideIn { from { transform: translateX(80px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+  /* ─── MODAL ─── */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--surface); border-radius: 16px; padding: 28px; width: 480px; max-width: 95vw; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+  .modal-title { font-size: 18px; font-weight: 800; margin-bottom: 20px; }
+  .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+
+  /* ─── FILTER BAR ─── */
+  .filter-bar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+  .filter-chip {
+    padding: 7px 16px; border-radius: 20px; font-size: 12.5px; font-weight: 600;
+    cursor: pointer; border: 1.5px solid var(--border2); background: var(--surface); color: var(--text2);
+    transition: all 0.15s;
+  }
+  .filter-chip.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .filter-chip:hover:not(.active) { border-color: var(--primary); color: var(--primary); }
+
+  .search-bar { display: flex; gap: 10px; margin-bottom: 20px; align-items: center; }
+  .search-input { flex: 1; }
+
+  /* ─── COURSE CARD ─── */
+  .course-card {
+    background: var(--surface); border-radius: var(--radius-lg); border: 1px solid var(--border);
+    overflow: hidden; box-shadow: var(--shadow); cursor: pointer; transition: transform 0.15s;
+  }
+  .course-card:hover { transform: translateY(-2px); }
+  .course-banner { height: 100px; display: flex; align-items: center; justify-content: center; font-size: 40px; }
+  .course-body { padding: 14px; }
+  .course-type { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--primary); margin-bottom: 4px; }
+  .course-name { font-size: 14px; font-weight: 700; line-height: 1.3; }
+  .course-meta { font-size: 12px; color: var(--text2); margin-top: 6px; }
+
+  /* ─── QUICK ACCESS ─── */
+  .quick-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 28px; }
+  .quick-btn {
+    background: var(--surface); border-radius: var(--radius-lg); border: 1px solid var(--border);
+    padding: 16px 10px; display: flex; flex-direction: column; align-items: center; gap: 8px;
+    cursor: pointer; transition: all 0.15s; box-shadow: var(--shadow);
+  }
+  .quick-btn:hover { border-color: var(--primary); background: var(--primary-light); transform: translateY(-1px); }
+  .quick-btn .icon { font-size: 24px; }
+  .quick-btn .label { font-size: 12px; font-weight: 600; color: var(--text2); text-align: center; }
+
+  /* ─── WORK PROGRESS STATUS ─── */
+  .status-timeline { display: flex; align-items: center; gap: 0; margin: 20px 0; }
+  .status-step { display: flex; flex-direction: column; align-items: center; flex: 1; }
+  .status-dot { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; z-index: 1; }
+  .status-dot.done { background: var(--success); color: #fff; }
+  .status-dot.current { background: var(--primary); color: #fff; }
+  .status-dot.upcoming { background: var(--surface); border: 2px solid var(--border2); color: var(--text3); }
+  .status-line { flex: 1; height: 2px; background: var(--border); margin-top: -16px; }
+  .status-line.done { background: var(--success); }
+  .status-label { font-size: 11px; color: var(--text2); margin-top: 6px; font-weight: 600; text-align: center; }
+
+  /* ─── RATING ─── */
+  .rating-stars { display: flex; gap: 4px; }
+  .star { font-size: 20px; cursor: pointer; color: #d1d5db; transition: color 0.1s; }
+  .star.filled { color: var(--accent); }
+  .star:hover { color: var(--accent); }
+
+  /* ─── SCROLLBAR ─── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+  /* ─── SECTION TITLE ─── */
+  .section-title { font-size: 16px; font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; }
+
+  /* Map placeholder */
+  .map-placeholder { background: linear-gradient(135deg, #e8f0fe, #dbeafe); border-radius: var(--radius); height: 140px; display: flex; align-items: center; justify-content: center; font-size: 32px; border: 1px dashed var(--border2); flex-direction: column; gap: 8px; }
+  .map-placeholder span { font-size: 13px; color: var(--text2); font-weight: 500; }
+
+  /* Income chart line */
+  .income-bar { display: flex; align-items: flex-end; gap: 6px; height: 80px; }
+  .income-col { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; gap: 3px; }
+  .income-bar-inner { border-radius: 4px 4px 0 0; background: var(--primary); opacity: 0.85; }
+  .income-month { font-size: 9px; color: var(--text3); text-align: center; font-weight: 600; }
+
+  /* File upload */
+  .upload-zone { border: 2px dashed var(--border2); border-radius: var(--radius-lg); padding: 28px; text-align: center; cursor: pointer; transition: all 0.15s; }
+  .upload-zone:hover { border-color: var(--primary); background: var(--primary-light); }
+  .upload-icon { font-size: 36px; margin-bottom: 8px; }
+  .upload-text { font-size: 13px; color: var(--text2); }
+
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+  /* ─── ADMIN CHART (simple) ─── */
+  .admin-chart { height: 160px; background: var(--surface2); border-radius: var(--radius); padding: 16px; display: flex; align-items: flex-end; gap: 6px; overflow: hidden; }
+  .admin-bar { flex: 1; border-radius: 4px 4px 0 0; background: var(--primary); opacity: 0.8; transition: opacity 0.15s; cursor: pointer; }
+  .admin-bar:hover { opacity: 1; }
+  .admin-bar.accent { background: var(--accent); }
+  .admin-bar.success { background: var(--success); }
+
+  .flex { display: flex; }
+  .flex-between { display: flex; align-items: center; justify-content: space-between; }
+  .flex-center { display: flex; align-items: center; justify-content: center; }
+  .gap-8 { gap: 8px; }
+  .gap-12 { gap: 12px; }
+  .gap-16 { gap: 16px; }
+  .mt-8 { margin-top: 8px; }
+  .mt-12 { margin-top: 12px; }
+  .mt-16 { margin-top: 16px; }
+  .mt-20 { margin-top: 20px; }
+  .mb-20 { margin-bottom: 20px; }
+  .text-sm { font-size: 13px; color: var(--text2); }
+  .text-xs { font-size: 12px; color: var(--text3); }
+  .text-right { text-align: right; }
+  .bold { font-weight: 700; }
+  .fw-800 { font-weight: 800; }
+  .color-primary { color: var(--primary); }
+  .color-success { color: var(--success); }
+  .w-full { width: 100%; }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-logo">Тек<span>Рент</span></div>
+  <div class="module-tabs">
+    <button class="module-tab active" onclick="switchModule('owner')">🏗️ Техник Эзэмшигч</button>
+    <button class="module-tab" onclick="switchModule('operator')">👷 Оператор</button>
+    <button class="module-tab" onclick="switchModule('company')">🏢 Захиалагч</button>
+    <button class="module-tab" onclick="switchModule('admin')">⚙️ Админ</button>
+  </div>
+  <div class="topbar-right">
+    <div class="notif-btn" onclick="navigateTo('owner-notif')">
+      🔔<div class="notif-dot"></div>
+    </div>
+    <div class="user-avatar">БД</div>
+  </div>
+</div>
+
+<div class="app-body">
+
+<!-- ─────────── SIDEBAR ─────────── -->
+<div class="sidebar" id="sidebar">
+  <!-- Owner sidebar -->
+  <div id="owner-nav">
+    <div class="sidebar-section">Үндсэн цэс</div>
+    <button class="sidebar-item active" onclick="navigateTo('owner-home')"><span class="icon">🏠</span>Нүүр хуудас</button>
+    <button class="sidebar-item" onclick="navigateTo('owner-register')"><span class="icon">➕</span>Техник бүртгэх</button>
+    <button class="sidebar-item" onclick="navigateTo('owner-calendar')"><span class="icon">📅</span>Хуанли</button>
+    <button class="sidebar-item" onclick="navigateTo('owner-orders')"><span class="icon">📋</span>Захиалгын түүх</button>
+    <button class="sidebar-item" onclick="navigateTo('owner-notif')"><span class="icon">🔔</span>Мэдэгдэл<span class="sidebar-badge">3</span></button>
+  </div>
+
+  <!-- Operator sidebar -->
+  <div id="operator-nav" style="display:none">
+    <div class="sidebar-section">Оператор</div>
+    <button class="sidebar-item active" onclick="navigateTo('op-profile')"><span class="icon">👤</span>Профайл</button>
+    <button class="sidebar-item" onclick="navigateTo('op-jobs')"><span class="icon">💼</span>Ажлын санал<span class="sidebar-badge">5</span></button>
+    <button class="sidebar-item" onclick="navigateTo('op-academy')"><span class="icon">🎓</span>Академи сургалт</button>
+    <button class="sidebar-item" onclick="navigateTo('op-income')"><span class="icon">💰</span>Орлого</button>
+  </div>
+
+  <!-- Company sidebar -->
+  <div id="company-nav" style="display:none">
+    <div class="sidebar-section">Захиалагч</div>
+    <button class="sidebar-item active" onclick="navigateTo('co-search')"><span class="icon">🔍</span>Хайлт</button>
+    <button class="sidebar-item" onclick="navigateTo('co-create')"><span class="icon">📝</span>Захиалга үүсгэх</button>
+    <button class="sidebar-item" onclick="navigateTo('co-offers')"><span class="icon">✉️</span>Тохирох санал<span class="sidebar-badge">4</span></button>
+    <button class="sidebar-item" onclick="navigateTo('co-progress')"><span class="icon">📊</span>Ажлын явц</button>
+    <button class="sidebar-item" onclick="navigateTo('co-review')"><span class="icon">⭐</span>Үнэлгээ</button>
+  </div>
+
+  <!-- Admin sidebar -->
+  <div id="admin-nav" style="display:none">
+    <div class="sidebar-section">Удирдлага</div>
+    <button class="sidebar-item active" onclick="navigateTo('ad-dashboard')"><span class="icon">📈</span>Dashboard</button>
+    <button class="sidebar-item" onclick="navigateTo('ad-users')"><span class="icon">👥</span>Хэрэглэгч удирдах</button>
+    <button class="sidebar-item" onclick="navigateTo('ad-transactions')"><span class="icon">💳</span>Гүйлгээ</button>
+    <button class="sidebar-item" onclick="navigateTo('ad-academy')"><span class="icon">📚</span>Академи контент</button>
+    <button class="sidebar-item" onclick="navigateTo('ad-settings')"><span class="icon">⚙️</span>Тохиргоо</button>
+  </div>
+</div>
+
+<!-- ─────────── MAIN CONTENT ─────────── -->
+<div class="main">
+
+<!-- ═══════════ MODULE 1: OWNER ═══════════ -->
+
+<!-- 1.1 Owner Home -->
+<div class="page active" id="page-owner-home">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Сайн байна уу, Батболд! 👋</div>
+      <div class="page-subtitle">Өнөөдөр 3 шинэ мэдэгдэл байна</div>
+    </div>
+  </div>
+
+  <div class="quick-grid">
+    <div class="quick-btn" onclick="navigateTo('owner-register')">
+      <span class="icon">🚜</span><span class="label">Техник бүртгэх</span>
+    </div>
+    <div class="quick-btn" onclick="navigateTo('owner-calendar')">
+      <span class="icon">📅</span><span class="label">Хуанли</span>
+    </div>
+    <div class="quick-btn" onclick="navigateTo('owner-orders')">
+      <span class="icon">📋</span><span class="label">Захиалгын түүх</span>
+    </div>
+    <div class="quick-btn" onclick="navigateTo('owner-notif')">
+      <span class="icon">🔔</span><span class="label">Мэдэгдэл</span>
+    </div>
+  </div>
+
+  <div class="section-title">
+    Миний Техникүүд
+    <button class="btn btn-primary btn-sm" onclick="navigateTo('owner-register')">+ Техник нэмэх</button>
+  </div>
+  <div class="grid-auto">
+    <div class="equip-card">
+      <div class="equip-img">🚜</div>
+      <div class="equip-body">
+        <div class="equip-name">Caterpillar CAT 320 GC Экскаватор</div>
+        <div class="equip-loc">📍 Улаанбаатар, Баянгол дүүрэг</div>
+        <div class="equip-footer">
+          <span class="equip-price">5,000,000₮/сар</span>
+          <span class="badge badge-success">Идэвхтэй</span>
+        </div>
+      </div>
+    </div>
+    <div class="equip-card">
+      <div class="equip-img" style="background: linear-gradient(135deg, #92400e, #b45309);">🏗️</div>
+      <div class="equip-body">
+        <div class="equip-name">Komatsu PC200-8 Экскаватор</div>
+        <div class="equip-loc">📍 Улаанбаатар, Хан-Уул дүүрэг</div>
+        <div class="equip-footer">
+          <span class="equip-price">4,500,000₮/сар</span>
+          <span class="badge badge-warning">Завгүй</span>
+        </div>
+      </div>
+    </div>
+    <div class="equip-card">
+      <div class="equip-img" style="background: linear-gradient(135deg, #065f46, #10b981);">🚛</div>
+      <div class="equip-body">
+        <div class="equip-name">Volvo FH16 Ачааны машин</div>
+        <div class="equip-loc">📍 Дархан-Уул аймаг</div>
+        <div class="equip-footer">
+          <span class="equip-price">3,800,000₮/сар</span>
+          <span class="badge badge-danger">Засвартай</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 1.2 Owner Register -->
+<div class="page" id="page-owner-register">
+  <div class="page-header">
+    <button class="back-btn" onclick="navigateTo('owner-home')">←</button>
+    <div>
+      <div class="page-title">Техник бүртгэх</div>
+      <div class="page-subtitle">Шинэ техник нэмэх</div>
+    </div>
+  </div>
+  <div class="card" style="max-width: 640px;">
+    <div class="card-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Техникийн төрөл *</label>
+          <select class="form-control">
+            <option>Экскаватор</option>
+            <option>Ачааны машин</option>
+            <option>Кран</option>
+            <option>Бульдозер</option>
+            <option>Грейдер</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Загвар *</label>
+          <input type="text" class="form-control" placeholder="жишээ нь: Caterpillar CAT 320 GC">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Хүчин чадал</label>
+          <input type="text" class="form-control" placeholder="жишээ нь: 200 HP">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Байршил *</label>
+          <input type="text" class="form-control" placeholder="жишээ нь: Улаанбаатар">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Лицензийн мэдээлэл</label>
+        <input type="text" class="form-control" placeholder="Лицензийн дугаар">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Үнэ (₮/сар) *</label>
+        <input type="text" class="form-control" placeholder="жишээ нь: 5,000,000">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Зураг оруулах</label>
+        <div class="upload-zone" onclick="showToast('Зураг сонгох цонх нээгдлээ', 'success')">
+          <div class="upload-icon">📸</div>
+          <div class="upload-text">Зураг оруулахын тулд дарна уу<br><span style="color: var(--text3); font-size: 11px;">PNG, JPG (Дээд тал нь 10MB)</span></div>
+        </div>
+      </div>
+      <div style="display: flex; gap: 12px;">
+        <button class="btn btn-primary w-full" onclick="showToast('Техник амжилттай бүртгэгдлээ! ✓', 'success'); navigateTo('owner-home')">Бүртгэх</button>
+        <button class="btn btn-outline" onclick="navigateTo('owner-home')">Цуцлах</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 1.3 Owner Calendar -->
+<div class="page" id="page-owner-calendar">
+  <div class="page-header">
+    <button class="back-btn" onclick="navigateTo('owner-home')">←</button>
+    <div class="page-title">Хуанли</div>
+  </div>
+  <div class="card">
+    <div class="cal-header">
+      <div class="cal-month">2024 оны 5-р сар</div>
+      <div class="cal-nav">
+        <button class="cal-nav-btn">‹</button>
+        <button class="cal-nav-btn">›</button>
+      </div>
+    </div>
+    <div style="padding: 12px 16px;">
+      <div class="cal-grid">
+        <div class="cal-dow">Да</div><div class="cal-dow">Мя</div><div class="cal-dow">Лх</div>
+        <div class="cal-dow">Пү</div><div class="cal-dow">Ба</div><div class="cal-dow">Бя</div><div class="cal-dow">Ня</div>
+      </div>
+      <div class="cal-grid" id="cal-days"></div>
+    </div>
+  </div>
+  <div class="mt-16">
+    <div class="section-title">2024.05.15-ны захиалгууд</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Захиалгын ID</th><th>Техник</th><th>Байршил</th><th>Цаг</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">#ORD-2024-0512</td><td>CAT 320 GC</td><td>Баянгол</td><td>08:00 - 18:00</td></tr>
+          <tr><td class="mono">#ORD-2024-0513</td><td>Komatsu PC200</td><td>Хан-Уул</td><td>09:00 - 17:00</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- 1.4 Owner Orders -->
+<div class="page" id="page-owner-orders">
+  <div class="page-header">
+    <button class="back-btn" onclick="navigateTo('owner-home')">←</button>
+    <div class="page-title">Захиалгын түүх</div>
+  </div>
+  <div class="filter-bar">
+    <span class="filter-chip active">Бүгд</span>
+    <span class="filter-chip">Энэ сар</span>
+    <span class="filter-chip">Өнгөрсөн сар</span>
+    <span class="filter-chip">Экскаватор</span>
+    <span class="filter-chip">Ачааны машин</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Захиалгын ID</th><th>Огноо</th><th>Байршил</th><th>Техник</th><th>Орлого</th><th>Төлөв</th></tr></thead>
+      <tbody>
+        <tr onclick="showOrderDetail()"><td class="mono">#ORD-2024-0512</td><td>2024.05.15</td><td>Улаанбаатар</td><td>CAT 320 GC</td><td class="bold color-primary">5,000,000₮</td><td><span class="badge badge-success">Дууссан</span></td></tr>
+        <tr onclick="showOrderDetail()"><td class="mono">#ORD-2024-0498</td><td>2024.05.10</td><td>Дархан</td><td>Komatsu PC200</td><td class="bold color-primary">4,500,000₮</td><td><span class="badge badge-warning">Явагдаж буй</span></td></tr>
+        <tr onclick="showOrderDetail()"><td class="mono">#ORD-2024-0477</td><td>2024.04.28</td><td>Улаанбаатар</td><td>Volvo FH16</td><td class="bold color-primary">3,800,000₮</td><td><span class="badge badge-success">Дууссан</span></td></tr>
+        <tr onclick="showOrderDetail()"><td class="mono">#ORD-2024-0455</td><td>2024.04.15</td><td>Эрдэнэт</td><td>CAT 320 GC</td><td class="bold color-primary">5,000,000₮</td><td><span class="badge badge-success">Дууссан</span></td></tr>
+        <tr onclick="showOrderDetail()"><td class="mono">#ORD-2024-0433</td><td>2024.04.01</td><td>Улаанбаатар</td><td>Komatsu PC200</td><td class="bold color-primary">4,500,000₮</td><td><span class="badge badge-danger">Цуцлагдсан</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 1.5 Owner Notifications -->
+<div class="page" id="page-owner-notif">
+  <div class="page-header">
+    <button class="back-btn" onclick="navigateTo('owner-home')">←</button>
+    <div class="page-title">Мэдэгдэл</div>
+  </div>
+  <div class="filter-bar">
+    <span class="filter-chip active">Бүгд</span>
+    <span class="filter-chip">Шинэ захиалга</span>
+    <span class="filter-chip">Төлбөр</span>
+    <span class="filter-chip">Систем</span>
+  </div>
+  <div class="card">
+    <div class="notif-item" onclick="navigateTo('owner-orders')">
+      <div class="notif-icon new-order">📦</div>
+      <div class="notif-content">
+        <div class="notif-title">Шинэ захиалга ирлээ! #ORD-2024-0515</div>
+        <div class="text-sm mt-8">CAT 320 GC — Улаанбаатар, Сүхбаатар дүүрэг</div>
+        <div class="notif-time">10 минутын өмнө</div>
+      </div>
+      <div class="notif-unread"></div>
+    </div>
+    <div class="notif-item">
+      <div class="notif-icon payment">💰</div>
+      <div class="notif-content">
+        <div class="notif-title">Төлбөр амжилттай хийгдлээ</div>
+        <div class="text-sm mt-8">#ORD-2024-0512 — 5,000,000₮ хүлээн авлаа</div>
+        <div class="notif-time">2 цагийн өмнө</div>
+      </div>
+      <div class="notif-unread"></div>
+    </div>
+    <div class="notif-item">
+      <div class="notif-icon system">⚙️</div>
+      <div class="notif-content">
+        <div class="notif-title">Системийн шинэчлэл</div>
+        <div class="text-sm mt-8">Системийн шинэ хувилбар 2.1.0 гарлаа</div>
+        <div class="notif-time">Өчигдөр</div>
+      </div>
+      <div class="notif-unread"></div>
+    </div>
+    <div class="notif-item" style="opacity: 0.6;">
+      <div class="notif-icon new-order">📦</div>
+      <div class="notif-content">
+        <div class="notif-title">Захиалга дууссан — #ORD-2024-0498</div>
+        <div class="notif-time">3 хоногийн өмнө</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MODULE 2: OPERATOR ═══════════ -->
+
+<!-- 2.1 Operator Profile -->
+<div class="page" id="page-op-profile">
+  <div class="page-header">
+    <div class="page-title">Профайл</div>
+    <button class="btn btn-outline btn-sm" style="margin-left: auto;" onclick="showToast('Профайл засах горим', '')">✏️ Засах</button>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="profile-header">
+        <div class="profile-avatar">БД</div>
+        <div>
+          <div style="font-size: 20px; font-weight: 800;">Батболд Д.</div>
+          <div class="profile-stars">★★★★★ <span style="font-size: 14px; color: var(--text2);">4.8 (124 үнэлгээ)</span></div>
+          <div class="text-sm mt-8">5 жилийн туршлага</div>
+        </div>
+      </div>
+      <div class="profile-meta-item"><span class="meta-key">Утас</span><span class="meta-val">+976 9911-2233</span></div>
+      <div class="profile-meta-item"><span class="meta-key">Имэйл</span><span class="meta-val">batbold@email.mn</span></div>
+      <div class="profile-meta-item"><span class="meta-key">Байршил</span><span class="meta-val">Улаанбаатар</span></div>
+      <div class="profile-meta-item"><span class="meta-key">Бүртгэгдсэн</span><span class="meta-val">2019.03.15</span></div>
+    </div>
+    <div>
+      <div class="card" style="margin-bottom: 16px;">
+        <div class="card-body">
+          <div class="section-title" style="margin-bottom: 14px;">Гэрчилгээнүүд</div>
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <div class="flex-between" style="padding: 10px; background: var(--surface2); border-radius: var(--radius);">
+              <span style="font-size: 13px; font-weight: 600;">📄 Экскаватор жолооч</span>
+              <button class="btn btn-outline btn-sm" onclick="showToast('Гэрчилгээ татаж байна...', 'success')">⬇ Татах</button>
+            </div>
+            <div class="flex-between" style="padding: 10px; background: var(--surface2); border-radius: var(--radius);">
+              <span style="font-size: 13px; font-weight: 600;">📄 Аюулгүй ажиллагаа</span>
+              <button class="btn btn-outline btn-sm" onclick="showToast('Гэрчилгээ татаж байна...', 'success')">⬇ Татах</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Нийт дууссан ажил</div>
+        <div class="stat-value">87</div>
+        <div class="stat-change up">↑ 12% энэ сар</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 2.2 Operator Jobs -->
+<div class="page" id="page-op-jobs">
+  <div class="page-header">
+    <button class="back-btn" onclick="navigateTo('op-profile')">←</button>
+    <div class="page-title">Ажлын санал</div>
+  </div>
+  <div class="filter-bar">
+    <span class="filter-chip active">Бүгд</span>
+    <span class="filter-chip">Экскаватор</span>
+    <span class="filter-chip">Ачааны машин</span>
+    <span class="filter-chip">Улаанбаатар</span>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 14px;">
+    <div class="card">
+      <div class="card-body">
+        <div class="flex-between mb-20">
+          <div>
+            <div style="font-size: 15px; font-weight: 700;">CAT 320 GC Экскаваторын оператор</div>
+            <div class="text-sm mt-8">📍 Улаанбаатар, Баянгол</div>
+          </div>
+          <div class="text-right">
+            <div class="bold color-primary" style="font-size: 16px;">1,500,000₮</div>
+            <div class="text-xs">нэг удаагийн</div>
+          </div>
+        </div>
+        <div class="flex gap-16 text-sm mb-20">
+          <span>📅 2024.05.20 - 2024.06.20</span>
+          <span>⏱️ 8 цаг/өдөр</span>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn btn-success btn-sm" onclick="showToast('Ажил хүлээн авлаа! Хуанлид нэмэгдлээ ✓', 'success')">✓ Хүлээн авах</button>
+          <button class="btn btn-outline btn-sm" onclick="showToast('Санал татгалзлаа', '')">✕ Татгалзах</button>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <div class="flex-between mb-20">
+          <div>
+            <div style="font-size: 15px; font-weight: 700;">Komatsu PC200 Операторын ажил</div>
+            <div class="text-sm mt-8">📍 Дархан-Уул аймаг</div>
+          </div>
+          <div class="text-right">
+            <div class="bold color-primary" style="font-size: 16px;">2,000,000₮</div>
+            <div class="text-xs">нэг удаагийн</div>
+          </div>
+        </div>
+        <div class="flex gap-16 text-sm mb-20">
+          <span>📅 2024.05.25 - 2024.06.25</span>
+          <span>⏱️ 10 цаг/өдөр</span>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn btn-success btn-sm" onclick="showToast('Ажил хүлээн авлаа! Хуанлид нэмэгдлээ ✓', 'success')">✓ Хүлээн авах</button>
+          <button class="btn btn-outline btn-sm">✕ Татгалзах</button>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <div class="flex-between mb-20">
+          <div>
+            <div style="font-size: 15px; font-weight: 700;">Volvo FH16 жолооч</div>
+            <div class="text-sm mt-8">📍 Эрдэнэт хот</div>
+          </div>
+          <div class="text-right">
+            <div class="bold color-primary" style="font-size: 16px;">1,800,000₮</div>
+            <div class="text-xs">нэг удаагийн</div>
+          </div>
+        </div>
+        <div class="flex gap-16 text-sm mb-20">
+          <span>📅 2024.06.01 - 2024.06.30</span>
+          <span>⏱️ 8 цаг/өдөр</span>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn btn-success btn-sm" onclick="showToast('Ажил хүлээн авлаа! ✓', 'success')">✓ Хүлээн авах</button>
+          <button class="btn btn-outline btn-sm">✕ Татгалзах</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 2.3 Academy -->
+<div class="page" id="page-op-academy">
+  <div class="page-header">
+    <button class="back-btn" onclick="navigateTo('op-profile')">←</button>
+    <div class="page-title">Академи сургалт</div>
+  </div>
+  <div class="search-bar">
+    <input type="text" class="form-control search-input" placeholder="🔍 Сургалт хайх...">
+    <select class="form-control" style="width: auto;">
+      <option>Бүгд</option><option>Видео</option><option>Тест</option><option>Материал</option>
+    </select>
+  </div>
+  <div class="grid-auto">
+    <div class="course-card" onclick="showToast('Сургалт нээгдлээ', '')">
+      <div class="course-banner" style="background: linear-gradient(135deg, #1a3a6b, #2a5298);">🎬</div>
+      <div class="course-body">
+        <div class="course-type">📹 Видео</div>
+        <div class="course-name">CAT 320 GC Экскаваторын аюулгүй ажиллагаа</div>
+        <div class="course-meta">⏱️ 1 цаг 30 минут</div>
+        <div class="mt-12">
+          <div class="text-xs mb-20" style="margin-bottom: 6px;">Явц: 60%</div>
+          <div class="progress-wrap"><div class="progress-bar" style="width: 60%"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="course-card" onclick="showToast('Тест эхэллээ', '')">
+      <div class="course-banner" style="background: linear-gradient(135deg, #065f46, #10b981);">📝</div>
+      <div class="course-body">
+        <div class="course-type">📋 Тест</div>
+        <div class="course-name">Барилгын тоног төхөөрөмжийн аюулгүй ажиллагааны тест</div>
+        <div class="course-meta">⏱️ 45 минут • 50 асуулт</div>
+        <div class="mt-12"><span class="badge badge-success">Дууссан ✓</span></div>
+      </div>
+    </div>
+    <div class="course-card">
+      <div class="course-banner" style="background: linear-gradient(135deg, #7c3aed, #a78bfa);">📄</div>
+      <div class="course-body">
+        <div class="course-type">📚 Материал</div>
+        <div class="course-name">Komatsu PC200-8 техникийн гарын авлага</div>
+        <div class="course-meta">📄 128 хуудас • PDF</div>
+        <div class="mt-12"><span class="badge badge-info">Шинэ</span></div>
+      </div>
+    </div>
+    <div class="course-card">
+      <div class="course-banner" style="background: linear-gradient(135deg, #92400e, #f59e0b);">🎬</div>
+      <div class="course-body">
+        <div class="course-type">📹 Видео</div>
+        <div class="course-name">Зам барилгын тоног төхөөрөмж ашиглах дадлага</div>
+        <div class="course-meta">⏱️ 2 цаг</div>
+        <div class="mt-12"><span class="badge badge-gray">Эхлээгүй</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 2.4 Operator Income -->
+<div class="page" id="page-op-income">
+  <div class="page-header">
+    <button class="back-btn" onclick="navigateTo('op-profile')">←</button>
+    <div class="page-title">Орлого</div>
+  </div>
+  <div class="filter-bar">
+    <span class="filter-chip active">2024 оны 5-р сар</span>
+    <span class="filter-chip">4-р сар</span>
+    <span class="filter-chip">3-р сар</span>
+  </div>
+  <div class="grid-3 mb-20">
+    <div class="stat-card"><div class="stat-label">Нийт орлого</div><div class="stat-value">15.0M₮</div><div class="stat-change up">↑ 8.2%</div></div>
+    <div class="stat-card"><div class="stat-label">Энэ сарын орлого</div><div class="stat-value">5.0M₮</div><div class="stat-change up">↑ 5.1%</div></div>
+    <div class="stat-card"><div class="stat-label">Татварын суутгал</div><div class="stat-value">750K₮</div><div class="stat-change" style="color: var(--text3);">15%</div></div>
+  </div>
+  <div class="card mb-20">
+    <div class="card-body">
+      <div class="section-title">Орлогын график</div>
+      <div class="income-bar">
+        <div class="income-col"><div class="income-bar-inner" style="height: 40px;"></div><div class="income-month">1-р</div></div>
+        <div class="income-col"><div class="income-bar-inner" style="height: 55px;"></div><div class="income-month">2-р</div></div>
+        <div class="income-col"><div class="income-bar-inner" style="height: 35px;"></div><div class="income-month">3-р</div></div>
+        <div class="income-col"><div class="income-bar-inner" style="height: 65px;"></div><div class="income-month">4-р</div></div>
+        <div class="income-col"><div class="income-bar-inner" style="height: 80px; background: var(--accent);"></div><div class="income-month">5-р</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="section-title">Захиалгын жагсаалт</div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Захиалгын ID</th><th>Огноо</th><th>Байршил</th><th>Орлого</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">#ORD-2024-0512</td><td>2024.05.15</td><td>Улаанбаатар</td><td class="bold color-success">+1,500,000₮</td></tr>
+        <tr><td class="mono">#ORD-2024-0498</td><td>2024.05.10</td><td>Дархан</td><td class="bold color-success">+2,000,000₮</td></tr>
+        <tr><td class="mono">#ORD-2024-0477</td><td>2024.04.28</td><td>Улаанбаатар</td><td class="bold color-success">+1,500,000₮</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════ MODULE 3: COMPANY ═══════════ -->
+
+<!-- 3.1 Search -->
+<div class="page" id="page-co-search">
+  <div class="page-header">
+    <div class="page-title">Техник хайх</div>
+  </div>
+  <div class="search-bar">
+    <input type="text" class="form-control search-input" placeholder="🔍 Техникийн нэр, загвараар хайх...">
+    <button class="btn btn-primary">Хайх</button>
+  </div>
+  <div class="filter-bar">
+    <span class="filter-chip active">Бүгд</span>
+    <span class="filter-chip">Экскаватор</span>
+    <span class="filter-chip">Ачааны машин</span>
+    <span class="filter-chip">Кран</span>
+    <span class="filter-chip">Улаанбаатар</span>
+    <span class="filter-chip">≤ 5M₮</span>
+  </div>
+  <div class="grid-auto">
+    <div class="equip-card" onclick="navigateTo('co-create')">
+      <div class="equip-img">🚜</div>
+      <div class="equip-body">
+        <div class="equip-name">Caterpillar CAT 320 GC Экскаватор</div>
+        <div class="equip-loc">📍 Улаанбаатар, Баянгол • ⭐ 4.8</div>
+        <div class="equip-footer">
+          <span class="equip-price">5,000,000₮/сар</span>
+          <span class="badge badge-success">Боломжтой</span>
+        </div>
+      </div>
+    </div>
+    <div class="equip-card">
+      <div class="equip-img" style="background: linear-gradient(135deg, #92400e, #b45309);">🏗️</div>
+      <div class="equip-body">
+        <div class="equip-name">Komatsu PC200-8 Экскаватор</div>
+        <div class="equip-loc">📍 Улаанбаатар, Хан-Уул • ⭐ 4.6</div>
+        <div class="equip-footer">
+          <span class="equip-price">4,500,000₮/сар</span>
+          <span class="badge badge-success">Боломжтой</span>
+        </div>
+      </div>
+    </div>
+    <div class="equip-card">
+      <div class="equip-img" style="background: linear-gradient(135deg, #1a3a6b, #374151);">🏗️</div>
+      <div class="equip-body">
+        <div class="equip-name">Liebherr LTM 1050 Гүйдэг кран</div>
+        <div class="equip-loc">📍 Улаанбаатар, Чингэлтэй • ⭐ 4.9</div>
+        <div class="equip-footer">
+          <span class="equip-price">8,000,000₮/сар</span>
+          <span class="badge badge-warning">Захиалгатай</span>
+        </div>
+      </div>
+    </div>
+    <div class="equip-card">
+      <div class="equip-img" style="background: linear-gradient(135deg, #065f46, #10b981);">🚛</div>
+      <div class="equip-body">
+        <div class="equip-name">Volvo FH16 Ачааны машин</div>
+        <div class="equip-loc">📍 Дархан-Уул аймаг • ⭐ 4.7</div>
+        <div class="equip-footer">
+          <span class="equip-price">3,800,000₮/сар</span>
+          <span class="badge badge-success">Боломжтой</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 3.2 Create Order -->
+<div class="page" id="page-co-create">
+  <div class="page-header">
+    <button class="back-btn" onclick="navigateTo('co-search')">←</button>
+    <div class="page-title">Захиалга үүсгэх</div>
+  </div>
+  <div style="display: grid; grid-template-columns: 1fr 380px; gap: 20px;">
+    <div class="card">
+      <div class="card-body">
+        <div class="form-group">
+          <label class="form-label">Техникийн ID *</label>
+          <input type="text" class="form-control" value="CAT-320-GC-2024-001" readonly style="background: var(--surface2);">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Эхлэх огноо *</label>
+            <input type="date" class="form-control" value="2024-05-20">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Дуусах огноо *</label>
+            <input type="date" class="form-control" value="2024-06-20">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Байршил *</label>
+          <input type="text" class="form-control" placeholder="Ажлын байрлал оруулна уу">
+          <div class="map-placeholder" style="margin-top: 10px;">
+            🗺️<span>Газрын зураг дээр байршил сонгох</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Нэмэлт шаардлага</label>
+          <textarea class="form-control" rows="3" placeholder="Онцгой шаардлага, тайлбар..."></textarea>
+        </div>
+        <div style="display: flex; gap: 12px;">
+          <button class="btn btn-primary w-full" onclick="showToast('Захиалга амжилттай илгээгдлээ! ✓', 'success'); navigateTo('co-offers')">Илгээх</button>
+          <button class="btn btn-outline" onclick="navigateTo('co-search')">Цуцлах</button>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-body">
+          <div class="section-title" style="margin-bottom: 14px;">Захиалгын тойм</div>
+          <div class="equip-img" style="border-radius: var(--radius); margin-bottom: 14px;">🚜</div>
+          <div class="bold" style="font-size: 15px;">Caterpillar CAT 320 GC</div>
+          <div class="text-sm">Эзэмшигч: Батболд Д.</div>
+          <div class="divider"></div>
+          <div class="flex-between" style="margin-bottom: 8px;"><span class="text-sm">Хугацаа</span><span class="bold">31 хоног</span></div>
+          <div class="flex-between" style="margin-bottom: 8px;"><span class="text-sm">Нэгжийн үнэ</span><span class="bold">5,000,000₮/сар</span></div>
+          <div class="divider"></div>
+          <div class="flex-between"><span class="bold">Нийт дүн</span><span class="bold color-primary" style="font-size: 16px;">5,000,000₮</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 3.3 Offers -->
+<div class="page" id="page-co-offers">
+  <div class="page-header">
+    <button class="back-btn" onclick="navigateTo('co-create')">←</button>
+    <div class="page-title">Тохирох санал</div>
+  </div>
+  <div class="filter-bar">
+    <span class="filter-chip active">Бүгд</span>
+    <span class="filter-chip">Хямд үнэ</span>
+    <span class="filter-chip">Өндөр үнэлгээ</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Техник эзэмшигч</th><th>Үнэлгээ</th><th>Техник</th><th>Хугацаа</th><th>Үнэ</th><th>Үйлдэл</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><div class="bold">Батболд Д.</div><div class="text-xs">5 жилийн туршлага</div></td>
+          <td><span style="color: var(--accent);">★</span> 4.8</td>
+          <td>CAT 320 GC</td>
+          <td><div class="text-xs">2024.05.20</div><div class="text-xs">2024.06.20</div></td>
+          <td class="bold color-primary">4,800,000₮</td>
+          <td><button class="btn btn-primary btn-sm" onclick="showToast('Санал сонгогдлоо! Баталгаажуулж байна...', 'success'); navigateTo('co-progress')">Сонгох</button></td>
+        </tr>
+        <tr>
+          <td><div class="bold">Ганбат Х.</div><div class="text-xs">3 жилийн туршлага</div></td>
+          <td><span style="color: var(--accent);">★</span> 4.5</td>
+          <td>CAT 320 GC</td>
+          <td><div class="text-xs">2024.05.20</div><div class="text-xs">2024.06.20</div></td>
+          <td class="bold color-primary">4,500,000₮</td>
+          <td><button class="btn btn-primary btn-sm" onclick="showToast('Санал сонгогдлоо! ✓', 'success'); navigateTo('co-progress')">Сонгох</button></td>
+        </tr>
+        <tr>
+          <td><div class="bold">Мөнхбаатар Л.</div><div class="text-xs">7 жилийн туршлага</div></td>
+          <td><span style="color: var(--accent);">★</span> 4.9</td>
+          <td>CAT 320 GC</td>
+          <td><div class="text-xs">2024.05.22</div><div class="text-xs">2024.06.22</div></td>
+          <td class="bold color-primary">5,200,000₮</td>
+          <td><button class="btn btn-primary btn-sm" onclick="showToast('Санал сонгогдлоо! ✓', 'success'); navigateTo('co-progress')">Сонгох</button></td>
+        </tr>
+        <tr>
+          <td><div class="bold">Эрдэнэ С.</div><div class="text-xs">2 жилийн туршлага</div></td>
+          <td><span style="color: var(--accent);">★</span> 4.2</td>
+          <td>CAT 320 GC</td>
+          <td><div class="text-xs">2024.05.20</div><div class="text-xs">2024.06.20</div></td>
+          <td class="bold color-primary">4,200,000₮</td>
+          <td><button class="btn btn-primary btn-sm" onclick="showToast('Санал сонгогдлоо! ✓', 'success'); navigateTo('co-progress')">Сонгох</button></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 3.4 Work Progress -->
+<div class="page" id="page-co-progress">
+  <div class="page-header">
+    <button class="back-btn" onclick="navigateTo('co-offers')">←</button>
+    <div class="page-title">Ажлын явц</div>
+  </div>
+  <div class="filter-bar">
+    <span class="filter-chip active">Бүгд</span>
+    <span class="filter-chip">Хүлээгдэж буй</span>
+    <span class="filter-chip">Явагдаж буй</span>
+    <span class="filter-chip">Дууссан</span>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 14px;">
+    <div class="card" onclick="showProgressDetail()">
+      <div class="card-body">
+        <div class="flex-between mb-20">
+          <div>
+            <div class="mono text-sm">#ORD-2024-0515</div>
+            <div style="font-size: 15px; font-weight: 700; margin-top: 4px;">CAT 320 GC Экскаватор</div>
+          </div>
+          <span class="badge badge-warning">⏳ Явагдаж буй</span>
+        </div>
+        <div class="status-timeline">
+          <div class="status-step">
+            <div class="status-dot done">✓</div>
+            <div class="status-label">Захиалсан</div>
+          </div>
+          <div class="status-line done"></div>
+          <div class="status-step">
+            <div class="status-dot done">✓</div>
+            <div class="status-label">Баталгаажсан</div>
+          </div>
+          <div class="status-line done"></div>
+          <div class="status-step">
+            <div class="status-dot current">▶</div>
+            <div class="status-label">Явагдаж буй</div>
+          </div>
+          <div class="status-line"></div>
+          <div class="status-step">
+            <div class="status-dot upcoming">4</div>
+            <div class="status-label">Дуусгах</div>
+          </div>
+        </div>
+        <div class="flex gap-16 text-sm" style="margin-top: 14px;">
+          <span>📍 Улаанбаатар, Баянгол</span>
+          <span>📅 2024.05.20 - 2024.06.20</span>
+          <span>👷 Батболд Д.</span>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <div class="flex-between mb-20">
+          <div>
+            <div class="mono text-sm">#ORD-2024-0498</div>
+            <div style="font-size: 15px; font-weight: 700; margin-top: 4px;">Komatsu PC200-8 Экскаватор</div>
+          </div>
+          <span class="badge badge-success">✓ Дууссан</span>
+        </div>
+        <div class="flex gap-16 text-sm">
+          <span>📍 Дархан-Уул</span><span>📅 2024.04.15 - 2024.05.15</span>
+          <button class="btn btn-outline btn-sm" onclick="navigateTo('co-review')" style="margin-left: auto;">⭐ Үнэлгээ өгөх</button>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <div class="flex-between mb-20">
+          <div>
+            <div class="mono text-sm">#ORD-2024-0477</div>
+            <div style="font-size: 15px; font-weight: 700; margin-top: 4px;">Volvo FH16 Ачааны машин</div>
+          </div>
+          <span class="badge badge-info">🕐 Хүлээгдэж буй</span>
+        </div>
+        <div class="flex gap-16 text-sm">
+          <span>📍 Эрдэнэт хот</span><span>📅 2024.06.01 - 2024.06.30</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 3.5 Review -->
+<div class="page" id="page-co-review">
+  <div class="page-header">
+    <button class="back-btn" onclick="navigateTo('co-progress')">←</button>
+    <div class="page-title">Үнэлгээ өгөх</div>
+  </div>
+  <div class="card" style="max-width: 600px;">
+    <div class="card-body">
+      <div style="padding: 16px; background: var(--surface2); border-radius: var(--radius); margin-bottom: 24px;">
+        <div class="mono text-xs mb-20" style="margin-bottom: 4px;">#ORD-2024-0498</div>
+        <div class="bold">Komatsu PC200-8 Экскаватор</div>
+        <div class="text-sm">2024.04.15 - 2024.05.15 · Дархан-Уул</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" style="font-size: 15px;">👷 Оператор: Батболд Д.</label>
+        <div class="rating-stars" id="op-stars" style="margin-bottom: 10px;">
+          <span class="star filled" onclick="setStars('op', 1)">★</span>
+          <span class="star filled" onclick="setStars('op', 2)">★</span>
+          <span class="star filled" onclick="setStars('op', 3)">★</span>
+          <span class="star filled" onclick="setStars('op', 4)">★</span>
+          <span class="star filled" onclick="setStars('op', 5)">★</span>
+        </div>
+        <textarea class="form-control" rows="3" placeholder="Операторын ажил, хандлага, мэргэжлийн талаар сэтгэгдлээ бичнэ үү..."></textarea>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="form-group">
+        <label class="form-label" style="font-size: 15px;">🏗️ Техник эзэмшигч: Мөнхбаатар Л.</label>
+        <div class="rating-stars" id="owner-stars" style="margin-bottom: 10px;">
+          <span class="star filled" onclick="setStars('owner', 1)">★</span>
+          <span class="star filled" onclick="setStars('owner', 2)">★</span>
+          <span class="star filled" onclick="setStars('owner', 3)">★</span>
+          <span class="star filled" onclick="setStars('owner', 4)">★</span>
+          <span class="star" onclick="setStars('owner', 5)">★</span>
+        </div>
+        <textarea class="form-control" rows="3" placeholder="Техникийн байдал, эзэмшигчийн харилцааны талаар сэтгэгдлээ бичнэ үү..."></textarea>
+      </div>
+
+      <button class="btn btn-primary w-full" onclick="showToast('Үнэлгээ амжилттай илгээгдлээ! Баярлалаа ✓', 'success'); navigateTo('co-progress')">Үнэлгээ илгээх</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MODULE 4: ADMIN ═══════════ -->
+
+<!-- 4.1 Dashboard -->
+<div class="page" id="page-ad-dashboard">
+  <div class="page-header">
+    <div class="page-title">Админ Панел</div>
+    <div class="text-sm" style="margin-left: auto;">2024 оны 5-р сар 15</div>
+  </div>
+  <div class="grid-4 mb-20">
+    <div class="stat-card"><div class="stat-label">Нийт хэрэглэгч</div><div class="stat-value">1,248</div><div class="stat-change up">↑ 12.4%</div></div>
+    <div class="stat-card"><div class="stat-label">Нийт гүйлгээ</div><div class="stat-value">547</div><div class="stat-change up">↑ 8.1%</div></div>
+    <div class="stat-card"><div class="stat-label">Идэвхтэй захиалга</div><div class="stat-value">103</div><div class="stat-change up">↑ 3.2%</div></div>
+    <div class="stat-card"><div class="stat-label">Нийт орлого</div><div class="stat-value fw-800" style="font-size: 20px;">₮100.2M</div><div class="stat-change up">↑ 15.7%</div></div>
+  </div>
+  <div class="grid-3">
+    <div class="card" style="grid-column: span 2;">
+      <div class="card-body">
+        <div class="section-title">Орлогын график (6 сар)</div>
+        <div class="admin-chart">
+          <div class="admin-bar" style="height: 55%;"></div>
+          <div class="admin-bar" style="height: 70%;"></div>
+          <div class="admin-bar" style="height: 45%;"></div>
+          <div class="admin-bar" style="height: 80%;"></div>
+          <div class="admin-bar" style="height: 65%;"></div>
+          <div class="admin-bar accent" style="height: 100%;"></div>
+        </div>
+        <div style="display: flex; justify-content: space-around; margin-top: 8px;">
+          <span class="text-xs">12-р</span><span class="text-xs">1-р</span><span class="text-xs">2-р</span>
+          <span class="text-xs">3-р</span><span class="text-xs">4-р</span><span class="text-xs">5-р</span>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <div class="section-title">Хэрэглэгчийн төрөл</div>
+        <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 8px;">
+          <div>
+            <div class="flex-between text-sm mb-20" style="margin-bottom: 4px;"><span>Техник эзэмшигч</span><span class="bold">312</span></div>
+            <div class="progress-wrap"><div class="progress-bar" style="width: 25%; background: var(--primary);"></div></div>
+          </div>
+          <div>
+            <div class="flex-between text-sm mb-20" style="margin-bottom: 4px;"><span>Оператор</span><span class="bold">524</span></div>
+            <div class="progress-wrap"><div class="progress-bar" style="width: 42%; background: var(--success);"></div></div>
+          </div>
+          <div>
+            <div class="flex-between text-sm mb-20" style="margin-bottom: 4px;"><span>Захиалагч</span><span class="bold">412</span></div>
+            <div class="progress-wrap"><div class="progress-bar" style="width: 33%; background: var(--accent);"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="mt-16">
+    <div class="section-title">Сүүлийн захиалгууд</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Захиалгын ID</th><th>Захиалагч</th><th>Техник</th><th>Орлого</th><th>Төлөв</th></tr></thead>
+        <tbody>
+          <tr onclick="navigateTo('ad-transactions')"><td class="mono">#ORD-2024-0515</td><td>МонголБарилга ХХК</td><td>CAT 320 GC</td><td>5,000,000₮</td><td><span class="badge badge-warning">Явагдаж буй</span></td></tr>
+          <tr onclick="navigateTo('ad-transactions')"><td class="mono">#ORD-2024-0514</td><td>Дорнод Уул ХХК</td><td>Komatsu PC200</td><td>4,500,000₮</td><td><span class="badge badge-success">Дууссан</span></td></tr>
+          <tr onclick="navigateTo('ad-transactions')"><td class="mono">#ORD-2024-0513</td><td>Эрдэнэт Барилга</td><td>Volvo FH16</td><td>3,800,000₮</td><td><span class="badge badge-info">Хүлээгдэж буй</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- 4.2 Users -->
+<div class="page" id="page-ad-users">
+  <div class="page-header">
+    <div class="page-title">Хэрэглэгч удирдах</div>
+  </div>
+  <div class="search-bar">
+    <input type="text" class="form-control search-input" placeholder="🔍 Хэрэглэгч хайх...">
+    <select class="form-control" style="width: auto;"><option>Бүгд</option><option>Техник эзэмшигч</option><option>Оператор</option><option>Захиалагч</option></select>
+    <button class="btn btn-primary">Хайх</button>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Хэрэглэгч</th><th>Төрөл</th><th>Бүртгэгдсэн</th><th>Захиалга</th><th>Төлөв</th><th>Үйлдэл</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><div class="bold">Батболд Д.</div><div class="text-xs">batbold@email.mn</div></td>
+          <td><span class="badge badge-info">Техник эзэмшигч</span></td>
+          <td>2019.03.15</td><td>87</td>
+          <td><span class="badge badge-success">Идэвхтэй</span></td>
+          <td><div style="display: flex; gap: 8px;"><button class="btn btn-outline btn-sm">Засах</button><button class="btn btn-danger btn-sm" onclick="showToast('Хэрэглэгч идэвхгүй болгогдлоо', 'error')">Идэвхгүй</button></div></td>
+        </tr>
+        <tr>
+          <td><div class="bold">Ганбат Х.</div><div class="text-xs">ganbat@email.mn</div></td>
+          <td><span class="badge badge-warning">Оператор</span></td>
+          <td>2020.07.22</td><td>54</td>
+          <td><span class="badge badge-success">Идэвхтэй</span></td>
+          <td><div style="display: flex; gap: 8px;"><button class="btn btn-outline btn-sm">Засах</button><button class="btn btn-danger btn-sm" onclick="showToast('Хэрэглэгч идэвхгүй болгогдлоо', 'error')">Идэвхгүй</button></div></td>
+        </tr>
+        <tr>
+          <td><div class="bold">МонголБарилга ХХК</div><div class="text-xs">info@mongol-barilt.mn</div></td>
+          <td><span class="badge badge-gray">Захиалагч</span></td>
+          <td>2021.01.10</td><td>132</td>
+          <td><span class="badge badge-success">Идэвхтэй</span></td>
+          <td><div style="display: flex; gap: 8px;"><button class="btn btn-outline btn-sm">Засах</button><button class="btn btn-danger btn-sm" onclick="showToast('Хэрэглэгч идэвхгүй болгогдлоо', 'error')">Идэвхгүй</button></div></td>
+        </tr>
+        <tr>
+          <td><div class="bold">Мөнхбаатар Л.</div><div class="text-xs">munkh@email.mn</div></td>
+          <td><span class="badge badge-info">Техник эзэмшигч</span></td>
+          <td>2018.11.05</td><td>201</td>
+          <td><span class="badge badge-danger">Идэвхгүй</span></td>
+          <td><div style="display: flex; gap: 8px;"><button class="btn btn-outline btn-sm">Засах</button><button class="btn btn-success btn-sm" onclick="showToast('Хэрэглэгч идэвхжүүлэгдлээ ✓', 'success')">Идэвхжүүлэх</button></div></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 4.3 Transactions -->
+<div class="page" id="page-ad-transactions">
+  <div class="page-header">
+    <div class="page-title">Гүйлгээ</div>
+  </div>
+  <div class="grid-3 mb-20">
+    <div class="stat-card"><div class="stat-label">Энэ сарын нийт</div><div class="stat-value">₮18.5M</div></div>
+    <div class="stat-card"><div class="stat-label">Системийн шимтгэл</div><div class="stat-value">₮1.85M</div><div class="stat-change" style="color: var(--text3);">10%</div></div>
+    <div class="stat-card"><div class="stat-label">Гүйлгээний тоо</div><div class="stat-value">124</div></div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Гүйлгээний ID</th><th>Огноо</th><th>Захиалагч</th><th>Орлого</th><th>Шимтгэл</th><th>Төлөв</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">#TXN-2024-1024</td><td>2024.05.15</td><td>МонголБарилга ХХК</td><td>5,000,000₮</td><td class="color-success">500,000₮</td><td><span class="badge badge-success">Амжилттай</span></td></tr>
+        <tr><td class="mono">#TXN-2024-1023</td><td>2024.05.14</td><td>Дорнод Уул ХХК</td><td>4,500,000₮</td><td class="color-success">450,000₮</td><td><span class="badge badge-success">Амжилттай</span></td></tr>
+        <tr><td class="mono">#TXN-2024-1022</td><td>2024.05.13</td><td>Эрдэнэт Барилга</td><td>3,800,000₮</td><td class="color-success">380,000₮</td><td><span class="badge badge-warning">Хүлээгдэж буй</span></td></tr>
+        <tr><td class="mono">#TXN-2024-1021</td><td>2024.05.12</td><td>Говь Уул ХХК</td><td>8,000,000₮</td><td class="color-success">800,000₮</td><td><span class="badge badge-success">Амжилттай</span></td></tr>
+        <tr><td class="mono">#TXN-2024-1020</td><td>2024.05.10</td><td>Хаан Барилга ХХК</td><td>2,500,000₮</td><td class="color-danger" style="text-decoration: line-through;">250,000₮</td><td><span class="badge badge-danger">Цуцлагдсан</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 4.4 Academy Content -->
+<div class="page" id="page-ad-academy">
+  <div class="page-header">
+    <div class="page-title">Академи Контент</div>
+    <button class="btn btn-primary btn-sm" style="margin-left: auto;" onclick="showToast('Шинэ сургалт нэмэх цонх', '')">+ Сургалт нэмэх</button>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Контентын нэр</th><th>Төрөл</th><th>Огноо</th><th>Үзэлт</th><th>Үйлдэл</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="bold">CAT 320 GC Экскаваторын аюулгүй ажиллагаа</td>
+          <td><span class="badge badge-info">📹 Видео</span></td>
+          <td>2024.04.10</td><td>1,247</td>
+          <td><div style="display: flex; gap: 8px;"><button class="btn btn-outline btn-sm" onclick="showToast('Засах горим', '')">✏️</button><button class="btn btn-danger btn-sm" onclick="showToast('Контент устгагдлаа', 'error')">🗑️</button></div></td>
+        </tr>
+        <tr>
+          <td class="bold">Барилгын тоног төхөөрөмжийн аюулгүй ажиллагааны тест</td>
+          <td><span class="badge badge-success">📋 Тест</span></td>
+          <td>2024.03.15</td><td>892</td>
+          <td><div style="display: flex; gap: 8px;"><button class="btn btn-outline btn-sm">✏️</button><button class="btn btn-danger btn-sm" onclick="showToast('Контент устгагдлаа', 'error')">🗑️</button></div></td>
+        </tr>
+        <tr>
+          <td class="bold">Komatsu PC200-8 техникийн гарын авлага</td>
+          <td><span class="badge badge-warning">📚 Материал</span></td>
+          <td>2024.05.01</td><td>654</td>
+          <td><div style="display: flex; gap: 8px;"><button class="btn btn-outline btn-sm">✏️</button><button class="btn btn-danger btn-sm" onclick="showToast('Контент устгагдлаа', 'error')">🗑️</button></div></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 4.5 Settings -->
+<div class="page" id="page-ad-settings">
+  <div class="page-header">
+    <div class="page-title">Системийн Тохиргоо</div>
+  </div>
+  <div class="card" style="max-width: 560px;">
+    <div class="card-body">
+      <div class="form-group">
+        <label class="form-label">Хэл / Language</label>
+        <select class="form-control"><option>🇲🇳 Монгол</option><option>🇺🇸 English</option></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Валют</label>
+        <select class="form-control"><option>₮ Төгрөг (MNT)</option><option>$ US Dollar (USD)</option></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Системийн шимтгэл (%)</label>
+        <input type="number" class="form-control" value="10">
+      </div>
+      <div class="divider"></div>
+      <div class="section-title" style="font-size: 14px;">Мэдэгдлийн тохиргоо</div>
+      <div style="display: flex; flex-direction: column; gap: 14px; margin-top: 14px;">
+        <div class="flex-between">
+          <span style="font-size: 14px;">Шинэ захиалгын мэдэгдэл</span>
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="checkbox" checked> <span class="text-sm">Тийм</span>
+          </label>
+        </div>
+        <div class="flex-between">
+          <span style="font-size: 14px;">Төлбөрийн мэдэгдэл</span>
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="checkbox" checked> <span class="text-sm">Тийм</span>
+          </label>
+        </div>
+        <div class="flex-between">
+          <span style="font-size: 14px;">Системийн мэдэгдэл</span>
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="checkbox"> <span class="text-sm">Үгүй</span>
+          </label>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <button class="btn btn-primary" onclick="showToast('Тохиргоо хадгалагдлаа ✓', 'success'); navigateTo('ad-dashboard')">Тохиргоо хадгалах</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- /main -->
+</div><!-- /app-body -->
+
+<!-- ─── MODAL: Order Detail ─── -->
+<div class="modal-overlay" id="modal-order">
+  <div class="modal">
+    <div class="modal-title">Захиалгын дэлгэрэнгүй</div>
+    <div style="background: var(--surface2); border-radius: var(--radius); padding: 16px; margin-bottom: 16px;">
+      <div class="mono text-sm" style="margin-bottom: 4px;">#ORD-2024-0512</div>
+      <div class="bold" style="font-size: 16px;">Caterpillar CAT 320 GC Экскаватор</div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 10px; font-size: 14px;">
+      <div class="flex-between"><span class="text-sm">Захиалагч</span><span class="bold">МонголБарилга ХХК</span></div>
+      <div class="flex-between"><span class="text-sm">Оператор</span><span class="bold">Батболд Д.</span></div>
+      <div class="flex-between"><span class="text-sm">Байршил</span><span>Улаанбаатар, Баянгол</span></div>
+      <div class="flex-between"><span class="text-sm">Огноо</span><span>2024.05.15 - 2024.06.15</span></div>
+      <div class="flex-between"><span class="text-sm">Орлого</span><span class="bold color-primary" style="font-size: 16px;">5,000,000₮</span></div>
+      <div class="flex-between"><span class="text-sm">Шимтгэл (10%)</span><span style="color: var(--danger);">-500,000₮</span></div>
+      <div class="flex-between" style="border-top: 1px solid var(--border); padding-top: 10px;"><span class="bold">Цэвэр орлого</span><span class="bold color-success" style="font-size: 16px;">4,500,000₮</span></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal()">Хаах</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── TOAST CONTAINER ─── -->
+<div class="toast-container" id="toasts"></div>
+
+<script>
+  let currentModule = 'owner';
+  let currentPage = 'owner-home';
+
+  const modulePages = {
+    owner: 'owner-home',
+    operator: 'op-profile',
+    company: 'co-search',
+    admin: 'ad-dashboard'
+  };
+
+  const moduleNavs = {
+    owner: 'owner-nav',
+    operator: 'operator-nav',
+    company: 'company-nav',
+    admin: 'admin-nav'
+  };
+
+  function switchModule(mod) {
+    currentModule = mod;
+    document.querySelectorAll('.module-tab').forEach((t,i) => {
+      t.classList.toggle('active', ['owner','operator','company','admin'][i] === mod);
+    });
+    Object.keys(moduleNavs).forEach(m => {
+      document.getElementById(moduleNavs[m]).style.display = m === mod ? 'block' : 'none';
+    });
+    navigateTo(modulePages[mod]);
+  }
+
+  function navigateTo(pageId) {
+    currentPage = pageId;
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    const page = document.getElementById('page-' + pageId);
+    if (page) page.classList.add('active');
+
+    document.querySelectorAll('.sidebar-item').forEach(item => {
+      item.classList.remove('active');
+      const onclick = item.getAttribute('onclick') || '';
+      if (onclick.includes("'" + pageId + "'")) item.classList.add('active');
+    });
+  }
+
+  function showToast(msg, type) {
+    const tc = document.getElementById('toasts');
+    const t = document.createElement('div');
+    t.className = 'toast ' + (type || '');
+    t.textContent = msg;
+    tc.appendChild(t);
+    setTimeout(() => t.remove(), 3200);
+  }
+
+  function showOrderDetail() {
+    document.getElementById('modal-order').classList.add('open');
+  }
+
+  function showProgressDetail() {
+    showToast('Захиалгын дэлгэрэнгүй харуулж байна...', '');
+  }
+
+  function closeModal() {
+    document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('open'));
+  }
+
+  document.querySelectorAll('.modal-overlay').forEach(m => {
+    m.addEventListener('click', e => { if (e.target === m) closeModal(); });
+  });
+
+  document.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.addEventListener('click', function() {
+      this.closest('.filter-bar').querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+
+  // Calendar generation
+  function buildCalendar() {
+    const days = document.getElementById('cal-days');
+    if (!days) return;
+    const eventDays = [3, 7, 10, 15, 18, 22, 28];
+    const startDay = 3; // Wednesday (0=Mon)
+    const today = 15;
+    let html = '';
+    for (let i = 0; i < startDay; i++) {
+      html += `<div class="cal-day other-month">${28 + i}</div>`;
+    }
+    for (let d = 1; d <= 31; d++) {
+      const isToday = d === today;
+      const hasEvent = eventDays.includes(d);
+      html += `<div class="cal-day ${isToday ? 'today' : ''} ${hasEvent ? 'has-event' : ''}" onclick="showToast('${d}-р өдрийн захиалгууд харуулж байна', '')">${d}</div>`;
+    }
+    for (let d = 1; d <= 7; d++) {
+      html += `<div class="cal-day other-month">${d}</div>`;
+    }
+    days.innerHTML = html;
+  }
+  buildCalendar();
+
+  // Star rating
+  function setStars(type, count) {
+    const container = document.getElementById(type + '-stars');
+    if (!container) return;
+    container.querySelectorAll('.star').forEach((s, i) => {
+      s.classList.toggle('filled', i < count);
+    });
+  }
+
+  // Filter chips in sidebar — toggle active
+  document.querySelectorAll('.module-tab').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.module-tab').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>
