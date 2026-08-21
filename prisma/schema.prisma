@@ -1,0 +1,746 @@
+// TechRent — construction equipment marketplace
+// Money is stored as whole Mongolian tugrik (MNT) in Int columns. No decimals exist
+// in practice for this currency, and Int comfortably covers per-transaction amounts.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────────────────── Identity ───────────────────────────
+
+enum Role {
+  OWNER
+  OPERATOR
+  COMPANY
+  ADMIN
+}
+
+enum VerificationStatus {
+  UNVERIFIED
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+model User {
+  id        String   @id @default(cuid())
+  phone     String   @unique
+  name      String
+  email     String?
+  role      Role
+  locale    String   @default("mn")
+  avatarUrl String?
+
+  verification VerificationStatus @default(UNVERIFIED)
+  verifiedAt   DateTime?
+  suspendedAt  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ownerProfile    OwnerProfile?
+  operatorProfile OperatorProfile?
+  companyProfile  CompanyProfile?
+
+  wallet        Account?
+  equipment     Equipment[]
+  orders        Order[]
+  notifications Notification[]
+  reviewsGiven  Review[]        @relation("ReviewAuthor")
+  enrollments   Enrollment[]
+  certificates  Certificate[]
+  storeOrders   StoreOrder[]
+  auditLogs     AuditLog[]
+
+  @@index([role])
+}
+
+model OtpCode {
+  id         String    @id @default(cuid())
+  phone      String
+  codeHash   String
+  expiresAt  DateTime
+  consumedAt DateTime?
+  attempts   Int       @default(0)
+  createdAt  DateTime  @default(now())
+
+  @@index([phone, expiresAt])
+}
+
+model OwnerProfile {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  companyName String?
+  regNumber   String?
+  aimag       String
+  district    String?
+  bio         String?
+
+  ratingAvg   Float @default(0)
+  ratingCount Int   @default(0)
+}
+
+enum OperatorLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+model OperatorProfile {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  level          OperatorLevel       @default(BEGINNER)
+  points         Int                 @default(0)
+  yearsExperience Int                @default(0)
+  skills         EquipmentCategory[]
+  aimag          String
+  district       String?
+  bio            String?
+  dailyRate      Int                 @default(0)
+  available      Boolean             @default(true)
+
+  ratingAvg   Float @default(0)
+  ratingCount Int   @default(0)
+  jobsDone    Int   @default(0)
+
+  matches  Match[]
+  bookings Booking[]
+}
+
+model CompanyProfile {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  companyName String
+  regNumber   String?
+  industry    String?
+  aimag       String
+  district    String?
+  logoUrl     String?
+
+  ratingAvg   Float @default(0)
+  ratingCount Int   @default(0)
+}
+
+// ─────────────────────────── Equipment ───────────────────────────
+
+enum EquipmentCategory {
+  EXCAVATOR
+  LOADER
+  BULLDOZER
+  CRANE
+  TRUCK
+  CONCRETE_MIXER
+  DRILL_RIG
+  GRADER
+  ROLLER
+  FORKLIFT
+}
+
+enum EquipmentStatus {
+  DRAFT
+  PENDING_REVIEW
+  ACTIVE
+  MAINTENANCE
+  INACTIVE
+}
+
+model Equipment {
+  id      String @id @default(cuid())
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  category EquipmentCategory
+  make     String
+  model    String
+  year     Int
+  status   EquipmentStatus   @default(ACTIVE)
+
+  hourlyRate  Int
+  dailyRate   Int
+  monthlyRate Int
+
+  aimag    String
+  district String?
+  lat      Float
+  lng      Float
+
+  description String?
+  photos      String[]
+  specs       Json?
+
+  withOperator Boolean @default(false)
+
+  ratingAvg   Float @default(0)
+  ratingCount Int   @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  availability AvailabilityBlock[]
+  matches      Match[]
+  bookings     Booking[]
+
+  @@index([category, status])
+  @@index([ownerId])
+}
+
+model AvailabilityBlock {
+  id          String    @id @default(cuid())
+  equipmentId String
+  equipment   Equipment @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+
+  startDate DateTime
+  endDate   DateTime
+  reason    String?
+
+  @@index([equipmentId, startDate, endDate])
+}
+
+// ─────────────────────── Orders & matching ───────────────────────
+
+enum OrderStatus {
+  DRAFT
+  OPEN
+  MATCHED
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  VERIFIED
+  PAID
+  CANCELLED
+}
+
+model Order {
+  id        String @id @default(cuid())
+  companyId String
+  company   User   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  title       String
+  description String?
+  category    EquipmentCategory
+  status      OrderStatus       @default(DRAFT)
+
+  startDate DateTime
+  endDate   DateTime
+
+  aimag    String
+  district String?
+  lat      Float
+  lng      Float
+
+  needsOperator Boolean @default(true)
+  budgetMin     Int?
+  budgetMax     Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  matches  Match[]
+  bookings Booking[]
+
+  @@index([status, category])
+  @@index([companyId])
+}
+
+enum MatchStatus {
+  SUGGESTED
+  OFFERED
+  ACCEPTED
+  DECLINED
+  EXPIRED
+}
+
+/// A scored candidate for an order. `breakdown` holds the per-factor scores so the
+/// UI can explain *why* something matched rather than showing a bare number.
+model Match {
+  id      String @id @default(cuid())
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  equipmentId String?
+  equipment   Equipment? @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+
+  operatorId String?
+  operator   OperatorProfile? @relation(fields: [operatorId], references: [id], onDelete: Cascade)
+
+  score        Int
+  breakdown    Json
+  distanceKm   Float
+  quotedAmount Int
+
+  status      MatchStatus @default(SUGGESTED)
+  respondedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  booking Booking?
+
+  @@index([orderId, status])
+}
+
+// ─────────────────────── Bookings & escrow ───────────────────────
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  VERIFIED
+  PAID
+  CANCELLED
+}
+
+model Booking {
+  id      String @id @default(cuid())
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  matchId String? @unique
+  match   Match?  @relation(fields: [matchId], references: [id])
+
+  equipmentId String?
+  equipment   Equipment? @relation(fields: [equipmentId], references: [id])
+
+  operatorId String?
+  operator   OperatorProfile? @relation(fields: [operatorId], references: [id])
+
+  startDate DateTime
+  endDate   DateTime
+
+  totalAmount     Int
+  depositAmount   Int
+  commissionRate  Float
+  commissionAmount Int
+  ownerPayout     Int
+  operatorPayout  Int
+
+  status BookingStatus @default(PENDING)
+
+  confirmedAt DateTime?
+  startedAt   DateTime?
+  completedAt DateTime?
+  verifiedAt  DateTime?
+  paidAt      DateTime?
+  cancelledAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  transactions LedgerTransaction[]
+  reviews      Review[]
+
+  @@index([status])
+  @@index([equipmentId, startDate, endDate])
+}
+
+// ─────────────────────── Double-entry ledger ───────────────────────
+
+enum AccountKind {
+  USER_WALLET
+  ESCROW
+  PLATFORM_REVENUE
+  /// The world outside the platform: bank transfers and payment-gateway
+  /// settlements. Gives top-ups and withdrawals a counter-account so every
+  /// transaction stays balanced.
+  EXTERNAL
+}
+
+/// Balances are always derived by summing ledger entries, never stored as a
+/// mutable column — that is what makes the ledger auditable.
+model Account {
+  id   String      @id @default(cuid())
+  kind AccountKind
+
+  userId String? @unique
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  label String?
+
+  createdAt DateTime @default(now())
+
+  entries LedgerEntry[]
+
+  @@index([kind])
+}
+
+enum TransactionType {
+  DEPOSIT_HOLD
+  BALANCE_HOLD
+  RELEASE
+  REFUND
+  TOPUP
+  WITHDRAWAL
+  STORE_PURCHASE
+}
+
+/// A balanced group of entries. The sum of `amount` across a transaction's
+/// entries is always zero.
+model LedgerTransaction {
+  id   String          @id @default(cuid())
+  type TransactionType
+
+  bookingId String?
+  booking   Booking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  storeOrderId String?
+  storeOrder   StoreOrder? @relation(fields: [storeOrderId], references: [id], onDelete: Cascade)
+
+  memo      String?
+  reference String?
+  createdAt DateTime @default(now())
+
+  entries LedgerEntry[]
+
+  @@index([bookingId])
+  @@index([createdAt])
+}
+
+model LedgerEntry {
+  id            String            @id @default(cuid())
+  transactionId String
+  transaction   LedgerTransaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+
+  accountId String
+  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  /// Positive credits the account, negative debits it.
+  amount Int
+
+  createdAt DateTime @default(now())
+
+  @@index([accountId])
+  @@index([transactionId])
+}
+
+// ─────────────────────── Reviews & notifications ───────────────────────
+
+enum ReviewSubject {
+  OPERATOR
+  EQUIPMENT
+  COMPANY
+}
+
+model Review {
+  id        String  @id @default(cuid())
+  bookingId String
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  authorId String
+  author   User   @relation("ReviewAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+
+  subjectType ReviewSubject
+  subjectId   String
+
+  rating      Int
+  punctuality Int?
+  quality     Int?
+  care        Int?
+  comment     String?
+
+  createdAt DateTime @default(now())
+
+  @@unique([bookingId, authorId, subjectType])
+  @@index([subjectType, subjectId])
+}
+
+enum NotificationType {
+  ORDER_MATCHED
+  OFFER_RECEIVED
+  OFFER_ACCEPTED
+  OFFER_DECLINED
+  BOOKING_CONFIRMED
+  BOOKING_STARTED
+  BOOKING_COMPLETED
+  BOOKING_VERIFIED
+  PAYOUT_RELEASED
+  REVIEW_RECEIVED
+  COURSE_COMPLETED
+  CERTIFICATE_EARNED
+  LEVEL_UP
+  ACCOUNT_VERIFIED
+  STORE_ORDER_PLACED
+}
+
+/// Payload is rendered through the translation layer at display time, so
+/// notifications are language-agnostic in storage.
+model Notification {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type NotificationType
+  data Json
+  link String?
+
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, readAt])
+}
+
+// ─────────────────────── Operator Academy ───────────────────────
+
+model Course {
+  id String @id @default(cuid())
+
+  slug          String            @unique
+  titleMn       String
+  titleEn       String
+  descriptionMn String
+  descriptionEn String
+  category      EquipmentCategory
+  level         OperatorLevel     @default(BEGINNER)
+
+  coverColor  String @default("#1a56db")
+  icon        String @default("book")
+  durationMin Int    @default(60)
+  pointsAward Int    @default(100)
+
+  published Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  lessons      Lesson[]
+  enrollments  Enrollment[]
+  certificates Certificate[]
+  questions    QuizQuestion[]
+}
+
+model Lesson {
+  id       String @id @default(cuid())
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  order     Int
+  titleMn   String
+  titleEn   String
+  contentMn String
+  contentEn String
+  durationMin Int  @default(10)
+
+  completions LessonCompletion[]
+
+  @@unique([courseId, order])
+}
+
+model QuizQuestion {
+  id       String @id @default(cuid())
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  order      Int
+  promptMn   String
+  promptEn   String
+  /// Array of { mn, en } option objects.
+  options    Json
+  correctIndex Int
+  explanationMn String?
+  explanationEn String?
+
+  @@unique([courseId, order])
+}
+
+enum EnrollmentStatus {
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+model Enrollment {
+  id       String @id @default(cuid())
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  status      EnrollmentStatus @default(IN_PROGRESS)
+  startedAt   DateTime         @default(now())
+  completedAt DateTime?
+
+  lessonCompletions LessonCompletion[]
+  attempts          QuizAttempt[]
+
+  @@unique([userId, courseId])
+}
+
+model LessonCompletion {
+  id           String     @id @default(cuid())
+  enrollmentId String
+  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  lessonId     String
+  lesson       Lesson     @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  completedAt DateTime @default(now())
+
+  @@unique([enrollmentId, lessonId])
+}
+
+model QuizAttempt {
+  id           String     @id @default(cuid())
+  enrollmentId String
+  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+
+  score       Int
+  totalPoints Int
+  passed      Boolean
+  answers     Json
+  createdAt   DateTime @default(now())
+}
+
+model Certificate {
+  id       String @id @default(cuid())
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  serial   String   @unique
+  score    Int
+  issuedAt DateTime @default(now())
+
+  @@unique([userId, courseId])
+}
+
+// ─────────────────────── Parts & service store ───────────────────────
+
+enum PartCategory {
+  FILTER
+  HYDRAULICS
+  UNDERCARRIAGE
+  ENGINE
+  ELECTRICAL
+  TIRES
+  ATTACHMENTS
+  CONSUMABLES
+}
+
+model Part {
+  id String @id @default(cuid())
+
+  sku           String @unique
+  nameMn        String
+  nameEn        String
+  descriptionMn String?
+  descriptionEn String?
+  category      PartCategory
+
+  price Int
+  stock Int    @default(0)
+  unit  String @default("pcs")
+
+  compatibleWith EquipmentCategory[]
+  imageColor     String              @default("#1a56db")
+
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orderItems StoreOrderItem[]
+}
+
+enum StoreOrderStatus {
+  PENDING
+  PAID
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+model StoreOrder {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  status      StoreOrderStatus @default(PENDING)
+  totalAmount Int
+  address     String?
+  note        String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items        StoreOrderItem[]
+  transactions LedgerTransaction[]
+}
+
+model StoreOrderItem {
+  id      String     @id @default(cuid())
+  orderId String
+  order   StoreOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  partId String
+  part   Part   @relation(fields: [partId], references: [id])
+
+  quantity  Int
+  unitPrice Int
+}
+
+enum ServiceRequestStatus {
+  OPEN
+  SCHEDULED
+  DONE
+  CANCELLED
+}
+
+model ServiceRequest {
+  id String @id @default(cuid())
+
+  requesterId String
+  equipmentId String?
+
+  category    EquipmentCategory
+  description String
+  preferredAt DateTime?
+  status      ServiceRequestStatus @default(OPEN)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+}
+
+// ─────────────────────── Platform ───────────────────────
+
+/// Single-row table (id = "singleton") holding admin-editable values that the
+/// escrow and matching logic read at runtime.
+model PlatformSettings {
+  id String @id @default("singleton")
+
+  commissionRate  Float @default(0.10)
+  depositPercent  Float @default(0.30)
+  operatorShare   Float @default(0.25)
+
+  levelUpIntermediate Int @default(500)
+  levelUpAdvanced     Int @default(1500)
+
+  pointsPerJob    Int @default(50)
+  pointsPerRating Int @default(10)
+
+  updatedAt DateTime @updatedAt
+}
+
+model AuditLog {
+  id     String  @id @default(cuid())
+  actorId String?
+  actor   User?   @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  action     String
+  targetType String?
+  targetId   String?
+  meta       Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}

@@ -1,0 +1,121 @@
+@import "tailwindcss";
+
+/* ─────────────────────────────────────────────────────────────
+   TechRent design tokens.
+   Brand blue and amber carry over from the original prototype;
+   the neutral ramp, radii and shadows are rebuilt for a softer,
+   more current surface treatment.
+   ───────────────────────────────────────────────────────────── */
+
+@theme {
+  --color-brand-50: #eef4ff;
+  --color-brand-100: #dbe6fe;
+  --color-brand-200: #bfd3fe;
+  --color-brand-300: #93b4fd;
+  --color-brand-400: #608cfa;
+  --color-brand-500: #3b6df6;
+  --color-brand-600: #1a56db;
+  --color-brand-700: #1745c4;
+  --color-brand-800: #1839a0;
+  --color-brand-900: #1a357e;
+  --color-brand-950: #14224d;
+
+  --color-accent-50: #fffbeb;
+  --color-accent-100: #fef3c7;
+  --color-accent-200: #fde68a;
+  --color-accent-300: #fcd34d;
+  --color-accent-400: #fbbf24;
+  --color-accent-500: #f59e0b;
+  --color-accent-600: #d97706;
+  --color-accent-700: #b45309;
+
+  --color-ink-50: #f8fafc;
+  --color-ink-100: #f1f5f9;
+  --color-ink-200: #e2e8f0;
+  --color-ink-300: #cbd5e1;
+  --color-ink-400: #94a3b8;
+  --color-ink-500: #64748b;
+  --color-ink-600: #475569;
+  --color-ink-700: #334155;
+  --color-ink-800: #1e293b;
+  --color-ink-900: #0f172a;
+  --color-ink-950: #020617;
+
+  --color-canvas: #f6f8fc;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f8fafc;
+
+  --color-positive: #059669;
+  --color-positive-soft: #d1fae5;
+  --color-caution: #d97706;
+  --color-caution-soft: #fef3c7;
+  --color-critical: #dc2626;
+  --color-critical-soft: #fee2e2;
+
+  --radius-card: 14px;
+  --radius-control: 10px;
+
+  --shadow-card: 0 1px 2px rgb(15 23 42 / 0.04), 0 4px 16px rgb(15 23 42 / 0.06);
+  --shadow-raised: 0 2px 4px rgb(15 23 42 / 0.05), 0 12px 32px rgb(15 23 42 / 0.10);
+  --shadow-overlay: 0 24px 64px rgb(15 23 42 / 0.22);
+
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-ink-200);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink-900);
+    font-family: var(--font-sans);
+    font-feature-settings: "cv11", "ss01";
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Figures line up in tables and dashboard tiles. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand-500);
+    outline-offset: 2px;
+  }
+}
+
+@layer utilities {
+  .card {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-ink-200);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+  }
+
+  /* Subtle grid used behind hero and auth screens. */
+  .bg-grid {
+    background-image:
+      linear-gradient(to right, rgb(15 23 42 / 0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(15 23 42 / 0.04) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-ink-300) transparent;
+  }
+}
+
+/* Leaflet renders into a plain div; give it the app's rounding and keep its
+   controls below our sticky chrome. */
+.leaflet-container {
+  border-radius: var(--radius-card);
+  font-family: var(--font-sans);
+  z-index: 0;
+}
