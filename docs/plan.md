@@ -180,7 +180,7 @@ what is built here.
 | 4 Operator Academy | done |
 | 5 Parts & service store | done |
 | 6 Admin console | done |
-| 7 Demo polish & deploy | polish done; the deploy itself is waiting on Vercel and Neon accounts |
+| 7 Demo polish & deploy | done — live at https://tech-rent-khashgerel-nomuungerels-projects.vercel.app |
 
 Phase 7 in detail:
 
@@ -196,9 +196,9 @@ Phase 7 in detail:
 - [docs/walkthrough.md](walkthrough.md) — the presenter's script.
 - [docs/deploy.md](deploy.md) — Neon + Vercel steps, environment variables, and
   post-deploy checks.
-- Still to do, and it needs the accounts: create the Neon project, run
-  `prisma migrate deploy` + `db:seed` against it, set the three environment
-  variables in Vercel, and import the repository.
+- Deployed 2026-08-25: Neon holds the seeded demo state, the three environment
+  variables are set on the Vercel project, `vercel.json` pins the Next.js
+  framework preset, and deployment protection is off so the URL can be shared.
 
 ## Deviations from the plan as written
 

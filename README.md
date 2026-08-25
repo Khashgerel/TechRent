@@ -9,6 +9,8 @@ state machines. Money is simulated against a double-entry ledger behind a
 swappable payment provider, so the accounting is exact without a payment
 gateway attached.
 
+**Live demo:** https://tech-rent-khashgerel-nomuungerels-projects.vercel.app
+
 - **Plan and status** — [docs/plan.md](docs/plan.md)
 - **Demo script** — [docs/walkthrough.md](docs/walkthrough.md)
 - **Deploying** — [docs/deploy.md](docs/deploy.md)
@@ -25,6 +27,10 @@ npm run db:start
 if the shell that launched it exits, the server is reaped and every query fails.
 It prints the connection string; put that in `.env` as `DATABASE_URL`, alongside
 a `SESSION_SECRET` (`openssl rand -base64 32`) and `DEMO_MODE="true"`.
+
+> **Check what `DATABASE_URL` points at before running anything that writes.**
+> If it holds the Neon string, `db:reset` and `db:seed` wipe the live demo
+> database rather than a local one — they drop every table first, by design.
 
 Then, in a second terminal:
 
