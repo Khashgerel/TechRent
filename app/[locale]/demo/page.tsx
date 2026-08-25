@@ -9,6 +9,10 @@ import type { Role } from "@/lib/generated/prisma/enums";
 
 const ROLE_ORDER: Role[] = ["OWNER", "OPERATOR", "COMPANY", "ADMIN"];
 
+// The personas come from the database, so this page must not be prerendered —
+// a build shouldn't need a reachable database to produce a page of live rows.
+export const dynamic = "force-dynamic";
+
 const ROLE_ICON = {
   OWNER: Truck,
   OPERATOR: HardHat,

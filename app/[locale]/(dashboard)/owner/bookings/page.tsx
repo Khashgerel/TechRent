@@ -2,6 +2,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ClipboardList } from "lucide-react";
 import { PageHeader } from "@/components/shell/page-header";
 import { Card } from "@/components/ui/card";
+import { Link } from "@/i18n/navigation";
 import { EmptyState } from "@/components/ui/feedback";
 import { BookingRow } from "@/components/bookings/booking-row";
 import { requireRole } from "@/lib/auth/guards";
@@ -61,7 +62,13 @@ export default async function OwnerBookingsPage({
               </h2>
               <Card>
                 {active.map((booking) => (
-                  <BookingRow key={booking.id} booking={toRow(booking)} />
+                  <Link
+                    key={booking.id}
+                    href={`/owner/bookings/${booking.id}`}
+                    className="block transition-colors hover:bg-ink-50/70"
+                  >
+                    <BookingRow booking={toRow(booking)} />
+                  </Link>
                 ))}
               </Card>
             </section>
@@ -74,7 +81,13 @@ export default async function OwnerBookingsPage({
               </h2>
               <Card>
                 {past.slice(0, 40).map((booking) => (
-                  <BookingRow key={booking.id} booking={toRow(booking)} />
+                  <Link
+                    key={booking.id}
+                    href={`/owner/bookings/${booking.id}`}
+                    className="block transition-colors hover:bg-ink-50/70"
+                  >
+                    <BookingRow booking={toRow(booking)} />
+                  </Link>
                 ))}
               </Card>
             </section>

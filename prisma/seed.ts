@@ -1,14 +1,49 @@
 import "dotenv/config";
+import pg from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { withConnectionRetry } from "../lib/db-retry";
 import { PrismaClient } from "../lib/generated/prisma/client";
 import { EQUIPMENT } from "./seed/equipment";
 import { jitter, PLACES, type Place } from "./seed/locations";
 import { ADMINS, COMPANIES, OPERATORS, OWNERS } from "./seed/people";
+import {
+  EXTRA_EQUIPMENT,
+  EXTRA_OPERATORS,
+  EXTRA_OWNERS,
+} from "./seed/fleet-extra";
+import { MORE_OPERATORS } from "./seed/operators-extra";
 import { seedHistory } from "./seed/history";
+import { seedOpenOrders } from "./seed/open-orders";
+import { seedAcademy, seedAcademyProgress } from "./seed/academy";
+import { seedStore } from "./seed/parts";
+import { seedPendingUsers } from "./seed/pending";
 
-const db = new PrismaClient({
-  adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
-});
+/**
+ * The seed writes thousands of rows in a row, which is exactly when a pooled
+ * connection is most likely to be dropped underneath it. It uses the same retry
+ * policy as the app so `db:reset` is dependable — it runs before every demo.
+ */
+function seedPool() {
+  const pool = new pg.Pool({
+    connectionString: process.env.DATABASE_URL,
+    max: 10,
+    idleTimeoutMillis: 10_000,
+    connectionTimeoutMillis: 10_000,
+    keepAlive: true,
+  });
+
+  pool.on("error", () => {});
+
+  const query = pool.query.bind(pool);
+  pool.query = ((...args: unknown[]) =>
+    withConnectionRetry(() =>
+      (query as (...a: unknown[]) => Promise<unknown>)(...args),
+    )) as typeof pool.query;
+
+  return pool;
+}
+
+const db = new PrismaClient({ adapter: new PrismaPg(seedPool()) });
 
 function place(key: string): Place {
   const found = (PLACES as Record<string, Place>)[key];
@@ -68,7 +103,7 @@ async function seedPlatform() {
 async function seedUsers() {
   const verified = { verification: "VERIFIED" as const, verifiedAt: new Date() };
 
-  for (const owner of OWNERS) {
+  for (const owner of [...OWNERS, ...EXTRA_OWNERS]) {
     const p = place(owner.place);
     await db.user.create({
       data: {
@@ -92,7 +127,7 @@ async function seedUsers() {
     });
   }
 
-  for (const op of OPERATORS) {
+  for (const op of [...OPERATORS, ...EXTRA_OPERATORS, ...MORE_OPERATORS]) {
     const p = place(op.place);
     await db.user.create({
       data: {
@@ -161,7 +196,7 @@ async function seedEquipment() {
   const owners = await db.user.findMany({ where: { role: "OWNER" } });
   const byPhone = new Map(owners.map((o) => [o.phone, o.id]));
 
-  for (const [index, item] of EQUIPMENT.entries()) {
+  for (const [index, item] of [...EQUIPMENT, ...EXTRA_EQUIPMENT].entries()) {
     const ownerId = byPhone.get(item.ownerPhone);
     if (!ownerId) throw new Error(`No owner for phone ${item.ownerPhone}`);
 
@@ -322,6 +357,145 @@ async function seedNotifications() {
       },
     });
   }
+
+  // Settled work matters too: without it, anyone whose jobs have all finished —
+  // which includes most operators — opens an empty notification feed. Taken per
+  // person rather than platform-wide, so nobody is crowded out by busier users.
+  const owners = await db.user.findMany({ where: { role: "OWNER" }, select: { id: true } });
+  const operators = await db.operatorProfile.findMany({ select: { id: true, userId: true } });
+
+  const payoutPayload = (booking: {
+    order: { title: string; company: { name: string; companyProfile: { companyName: string } | null } };
+    equipment: { make: string; model: string } | null;
+  }) => ({
+    orderTitle: booking.order.title,
+    companyName:
+      booking.order.company.companyProfile?.companyName ?? booking.order.company.name,
+    equipmentName: booking.equipment
+      ? `${booking.equipment.make} ${booking.equipment.model}`
+      : "",
+  });
+
+  for (const owner of owners) {
+    const recentPaid = await db.booking.findMany({
+      where: { status: "PAID", equipment: { ownerId: owner.id } },
+      include: {
+        order: { include: { company: { include: { companyProfile: true } } } },
+        equipment: true,
+      },
+      orderBy: { paidAt: "desc" },
+      take: 4,
+    });
+
+    for (const booking of recentPaid) {
+      await db.notification.create({
+        data: {
+          userId: owner.id,
+          type: "PAYOUT_RELEASED",
+          data: { ...payoutPayload(booking), amount: booking.ownerPayout },
+          link: `/owner/bookings/${booking.id}`,
+          createdAt: booking.paidAt ?? booking.updatedAt,
+          readAt: booking.paidAt,
+        },
+      });
+    }
+  }
+
+  for (const operator of operators) {
+    const recentPaid = await db.booking.findMany({
+      where: { status: "PAID", operatorId: operator.id },
+      include: {
+        order: { include: { company: { include: { companyProfile: true } } } },
+        equipment: true,
+      },
+      orderBy: { paidAt: "desc" },
+      take: 4,
+    });
+
+    for (const booking of recentPaid) {
+      await db.notification.create({
+        data: {
+          userId: operator.userId,
+          type: "PAYOUT_RELEASED",
+          data: { ...payoutPayload(booking), amount: booking.operatorPayout },
+          link: `/operator/jobs/${booking.id}`,
+          createdAt: booking.paidAt ?? booking.updatedAt,
+          readAt: booking.paidAt,
+        },
+      });
+    }
+  }
+
+  // Leave each person's newest couple unread, so every persona's bell has a count.
+  const withNotifications = await db.notification.groupBy({ by: ["userId"] });
+  for (const row of withNotifications) {
+    const newest = await db.notification.findMany({
+      where: { userId: row.userId },
+      orderBy: { createdAt: "desc" },
+      take: 2,
+      select: { id: true },
+    });
+    await db.notification.updateMany({
+      where: { id: { in: newest.map((n) => n.id) } },
+      data: { readAt: null },
+    });
+  }
+}
+
+/**
+ * Rewrites every rating aggregate from the reviews the seed actually created.
+ *
+ * The fixtures carry hand-written rating figures so listings look plausible,
+ * but those numbers didn't match the Review rows behind them — so the first
+ * real review recomputed the aggregate and the count visibly collapsed. Deriving
+ * them here keeps what's displayed equal to what's stored, from the start.
+ */
+async function recomputeRatings() {
+  const grouped = await db.review.groupBy({
+    by: ["subjectType", "subjectId"],
+    _avg: { rating: true },
+    _count: { rating: true },
+  });
+
+  for (const row of grouped) {
+    const data = {
+      ratingAvg: Math.round((row._avg.rating ?? 0) * 100) / 100,
+      ratingCount: row._count.rating,
+    };
+
+    if (row.subjectType === "EQUIPMENT") {
+      await db.equipment.update({ where: { id: row.subjectId }, data });
+    } else if (row.subjectType === "OPERATOR") {
+      await db.operatorProfile.update({ where: { id: row.subjectId }, data });
+    } else {
+      await db.companyProfile.update({ where: { id: row.subjectId }, data });
+    }
+  }
+
+  // Anything nobody reviewed should read as unrated, not as its fixture value.
+  const reviewed = new Set(grouped.map((r) => `${r.subjectType}:${r.subjectId}`));
+
+  const equipment = await db.equipment.findMany({ select: { id: true } });
+  for (const item of equipment) {
+    if (!reviewed.has(`EQUIPMENT:${item.id}`)) {
+      await db.equipment.update({
+        where: { id: item.id },
+        data: { ratingAvg: 0, ratingCount: 0 },
+      });
+    }
+  }
+
+  const operators = await db.operatorProfile.findMany({ select: { id: true } });
+  for (const op of operators) {
+    if (!reviewed.has(`OPERATOR:${op.id}`)) {
+      await db.operatorProfile.update({
+        where: { id: op.id },
+        data: { ratingAvg: 0, ratingCount: 0 },
+      });
+    }
+  }
+
+  return grouped.length;
 }
 
 async function main() {
@@ -343,6 +517,22 @@ async function main() {
   console.log("Seeding job history and ledger…");
   const history = await seedJobHistory();
 
+  console.log("Seeding open orders and live offers…");
+  const open = await seedOpenOrders(db);
+
+  console.log("Seeding Operator Academy…");
+  const academy = await seedAcademy(db);
+  const academyProgress = await seedAcademyProgress(db);
+
+  console.log("Seeding parts store…");
+  const store = await seedStore(db);
+
+  console.log("Seeding accounts awaiting verification…");
+  const pending = await seedPendingUsers(db);
+
+  console.log("Recomputing ratings from actual reviews…");
+  const rated = await recomputeRatings();
+
   console.log("Seeding notifications…");
   await seedNotifications();
 
@@ -354,6 +544,13 @@ async function main() {
     ledgerEntries: await db.ledgerEntry.count(),
     notifications: await db.notification.count(),
     ...history,
+    openOrders: open.orders,
+    liveOffers: open.matches,
+    ratedSubjects: rated,
+    ...academy,
+    ...academyProgress,
+    ...store,
+    ...pending,
   };
   console.log("Done:", counts);
 }

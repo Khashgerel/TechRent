@@ -13,7 +13,7 @@
     "db:stop": "prisma dev stop techrent",
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts",
-    "db:reset": "prisma migrate reset --force --skip-generate && tsx prisma/seed.ts",
+    "db:reset": "prisma migrate reset --force && tsx prisma/seed.ts",
     "db:studio": "prisma studio",
     "check:messages": "node scripts/check-messages.mjs"
   },

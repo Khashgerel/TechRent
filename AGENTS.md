@@ -18,8 +18,10 @@ demo — real database and real state machines, simulated money.
 
 - `npm run db:start` — start the local Postgres (Prisma's bundled server). It must
   stay running in its own terminal; if the shell that launched it exits, the
-  server is reaped and every query fails with `ECONNREFUSED`. The named server
-  keeps its ports (51214 / 51215) across restarts, so `.env` stays valid.
+  server is reaped and every query fails with `ECONNREFUSED` or `P1017`. The named
+  server keeps its ports (51214 / 51215) across restarts, so `.env` stays valid.
+  To keep it alive independently of any shell:
+  `Start-Process cmd -ArgumentList "/c npx prisma dev -n techrent" -WindowStyle Hidden`
 - `npm run db:reset` — migrate + reseed to a known demo state
 - `npm run dev` — dev server on :3000
 - `npm run typecheck` / `npm run lint` / `npm run test`
@@ -38,4 +40,15 @@ demo — real database and real state machines, simulated money.
   does an optimistic cookie-presence check; real enforcement is in server
   components and actions via `lib/auth/guards.ts`.
 - Prisma 7 generates into `lib/generated/prisma` (gitignored) and needs a driver
-  adapter — see `lib/db.ts`.
+  adapter — see `lib/db.ts`, which wraps `pool.query` with the retry policy in
+  `lib/db-retry.ts` so a dropped connection is retried instead of 500-ing.
+  Transactions are deliberately not retried — replaying half a transaction is
+  worse than failing.
+- Never write logs or scratch files into `.next/` — `next build` cleans that
+  directory and fails with `EBUSY` if something else holds a file there.
+- **`next build` must not need the database.** Any page reading live rows has to
+  opt out of prerendering (`export const dynamic = "force-dynamic"`), otherwise
+  the build fails wherever the database isn't reachable.
+- **Booking money** moves only through `lib/escrow/booking.ts`. `planTransition`
+  is pure and decides which ledger entries a transition posts; `lib/escrow/service.ts`
+  applies them and the status change in one database transaction.
