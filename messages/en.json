@@ -830,5 +830,14 @@
       "storeOrder_status": "Store order status",
       "serviceRequest_status": "Service request status"
     }
+  },
+  "errors": {
+    "title": "Something went wrong",
+    "body": "This screen could not be loaded. The database connection may have dropped — try again.",
+    "retry": "Try again",
+    "reference": "Reference: {id}",
+    "notFoundTitle": "That page does not exist",
+    "notFoundBody": "The link may be out of date, or the record it pointed at is gone.",
+    "backToDemo": "Back to the demo"
   }
 }

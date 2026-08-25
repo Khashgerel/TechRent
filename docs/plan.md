@@ -180,7 +180,25 @@ what is built here.
 | 4 Operator Academy | done |
 | 5 Parts & service store | done |
 | 6 Admin console | done |
-| 7 Demo polish & deploy | not started |
+| 7 Demo polish & deploy | polish done; the deploy itself is waiting on Vercel and Neon accounts |
+
+Phase 7 in detail:
+
+- Loading skeletons, an error boundary with retry, a locale-aware 404 and a
+  root `global-error` — every dashboard route is covered.
+- Mobile pass at 375px across the dense screens (admin dashboard, users,
+  transactions, store management, parts catalogue, equipment search including
+  the map): no horizontal overflow, sidebar collapses to a drawer.
+- `next build` verified against an unreachable database — every page that reads
+  live rows is server-rendered on demand, so a deploy can build before its
+  database exists. `postinstall: prisma generate` added so the client is
+  generated on a clean install.
+- [docs/walkthrough.md](walkthrough.md) — the presenter's script.
+- [docs/deploy.md](deploy.md) — Neon + Vercel steps, environment variables, and
+  post-deploy checks.
+- Still to do, and it needs the accounts: create the Neon project, run
+  `prisma migrate deploy` + `db:seed` against it, set the three environment
+  variables in Vercel, and import the repository.
 
 ## Deviations from the plan as written
 

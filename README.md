@@ -1,34 +1,73 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TechRent
 
-## Getting Started
+A three-sided marketplace for Mongolia's construction equipment market:
+equipment owners with idle machinery, independent operators looking for work,
+and companies that need both on short notice — plus an admin console.
 
-First, run the development server:
+Built as an investor demo: real database, real auth, real booking and escrow
+state machines. Money is simulated against a double-entry ledger behind a
+swappable payment provider, so the accounting is exact without a payment
+gateway attached.
+
+- **Plan and status** — [docs/plan.md](docs/plan.md)
+- **Demo script** — [docs/walkthrough.md](docs/walkthrough.md)
+- **Deploying** — [docs/deploy.md](docs/deploy.md)
+- **Original static mockup** — [docs/prototype.html](docs/prototype.html)
+
+## Running it locally
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run db:start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`db:start` runs Prisma's bundled Postgres and **must stay in its own terminal** —
+if the shell that launched it exits, the server is reaped and every query fails.
+It prints the connection string; put that in `.env` as `DATABASE_URL`, alongside
+a `SESSION_SECRET` (`openssl rand -base64 32`) and `DEMO_MODE="true"`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Then, in a second terminal:
 
-## Learn More
+```bash
+npm run db:reset   # migrate + seed to a known demo state (~25 minutes)
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+Open http://localhost:3000/mn/demo and sign in as any of the four personas.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Commands
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Command | What it does |
+|---|---|
+| `npm run dev` | Dev server on :3000 |
+| `npm run db:start` / `db:stop` | Local Postgres (keeps its ports across restarts) |
+| `npm run db:reset` | Migrate and reseed to the demo state |
+| `npm run db:seed` | Reseed only — still wipes every table first |
+| `npm run db:studio` | Prisma Studio |
+| `npm run typecheck` | `tsc --noEmit` |
+| `npm run lint` | ESLint |
+| `npm run test` | Vitest — matching, ledger, quiz grading, cart pricing |
+| `npm run check:messages` | Fails if the `mn` and `en` catalogs drift apart |
 
-## Deploy on Vercel
+## How it fits together
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+**Next.js App Router** with server components for reads and server actions for
+writes; no separate API. **Prisma 7** on Postgres through a driver adapter
+(`lib/db.ts`), with a retry policy for dropped connections. **next-intl** with
+locale-prefixed routes, Mongolian by default. Auth is a signed JWT cookie, not
+Auth.js.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Two modules carry the product's actual claims and are unit-tested in isolation:
+
+- **`lib/matching/`** — scores candidate machines and operators on distance,
+  category fit, skill overlap, price against budget, rating and calendar
+  availability, and returns the breakdown so the UI can explain the score.
+- **`lib/escrow/`** — the booking state machine. `planTransition` is pure and
+  decides which ledger entries a transition posts; `lib/escrow/service.ts`
+  applies them and the status change in one database transaction.
+
+Every balance in the app is summed from `LedgerEntry` rows. None are stored.
+
+See [AGENTS.md](AGENTS.md) for the conventions that matter when changing code
+here — money handling, i18n, notifications, and what the build is not allowed to
+depend on.
