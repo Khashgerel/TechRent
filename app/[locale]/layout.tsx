@@ -35,7 +35,11 @@ export default async function LocaleLayout({
   setRequestLocale(locale);
 
   return (
-    <html lang={locale} className={manrope.variable}>
+    // Browser extensions write their own attributes onto <html> before React
+    // hydrates, which React reports as a mismatch it "won't patch up". The
+    // suppression covers this element's own attributes only, and the two we set
+    // are derived from the locale param, so nothing real is being hidden.
+    <html lang={locale} className={manrope.variable} suppressHydrationWarning>
       <body className="min-h-dvh antialiased">
         <NextIntlClientProvider>{children}</NextIntlClientProvider>
       </body>
