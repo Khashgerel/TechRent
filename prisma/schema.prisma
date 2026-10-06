@@ -56,6 +56,7 @@ model User {
   certificates  Certificate[]
   storeOrders   StoreOrder[]
   auditLogs     AuditLog[]
+  invoices      PaymentInvoice[]
 
   @@index([role])
 }
@@ -470,6 +471,7 @@ enum NotificationType {
   LEVEL_UP
   ACCOUNT_VERIFIED
   STORE_ORDER_PLACED
+  WALLET_TOPPED_UP
 }
 
 /// Payload is rendered through the translation layer at display time, so
@@ -728,6 +730,72 @@ model PlatformSettings {
   pointsPerRating Int @default(10)
 
   updatedAt DateTime @updatedAt
+}
+
+// ─────────────────────── Payments (QPay) ───────────────────────
+
+enum PaymentProviderKind {
+  /// QPay's sandbox merchant environment. The only provider wired up today.
+  QPAY_SANDBOX
+  QPAY_PRODUCTION
+}
+
+enum PaymentPurpose {
+  /// Money entering the platform: credits the payer's wallet from EXTERNAL.
+  WALLET_TOPUP
+}
+
+enum PaymentInvoiceStatus {
+  PENDING
+  PAID
+  CANCELLED
+  FAILED
+}
+
+/// A payment request handed to QPay, and what came back.
+///
+/// The row exists before the money does: it is what a callback or a manual
+/// check is matched against, and `ledgerTransactionId` is what makes settling
+/// idempotent — QPay may call the callback more than once, and the visitor may
+/// press "check" at the same moment.
+model PaymentInvoice {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  provider PaymentProviderKind  @default(QPAY_SANDBOX)
+  purpose  PaymentPurpose       @default(WALLET_TOPUP)
+  status   PaymentInvoiceStatus @default(PENDING)
+
+  /// Our reference, sent as `sender_invoice_no`. Alphanumeric: QPay rejects
+  /// special characters, so this is not a cuid.
+  senderInvoiceNo String  @unique
+  /// QPay's `invoice_id`, the `object_id` a payment check is made against.
+  invoiceId       String? @unique
+
+  amount     Int
+  paidAmount Int @default(0)
+
+  qrText    String?
+  /// Base64 PNG from QPay — roughly 10KB, rendered inline so the page needs no
+  /// image host.
+  qrImage   String?
+  shortUrl  String?
+  /// QPay's per-bank deeplinks: [{ name, description, logo, link }].
+  deeplinks Json?
+
+  qpayPaymentId String?
+  paidAt        DateTime?
+  lastCheckedAt DateTime?
+
+  /// Set once the ledger has been credited; the uniqueness is the guard.
+  ledgerTransactionId String? @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, createdAt])
+  @@index([status])
 }
 
 model AuditLog {

@@ -12,6 +12,7 @@ gateway attached.
 **Live demo:** https://tech-rent-khashgerel-nomuungerels-projects.vercel.app
 
 - **Plan and status** — [docs/plan.md](docs/plan.md)
+- **QPay payments (sandbox)** — [docs/qpay.md](docs/qpay.md)
 - **Demo script** — [docs/walkthrough.md](docs/walkthrough.md)
 - **Deploying** — [docs/deploy.md](docs/deploy.md)
 - **Original static mockup** — [docs/prototype.html](docs/prototype.html)

@@ -106,6 +106,7 @@ export const NAV: Record<Role, NavSection[]> = {
 
 /** Appended to every role's sidebar. */
 export const SHARED_ITEMS: NavItem[] = [
+  { href: "/wallet", labelKey: "wallet", icon: Wallet },
   { href: "/store", labelKey: "store", icon: ShoppingCart },
 ];
 

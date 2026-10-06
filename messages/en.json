@@ -76,7 +76,8 @@
       "settings": "Settings"
     },
     "store": "Parts store",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "wallet": "Wallet"
   },
   "auth": {
     "loginTitle": "Sign in",
@@ -260,7 +261,8 @@
     "CERTIFICATE_EARNED": "Certificate earned",
     "LEVEL_UP": "Level up",
     "ACCOUNT_VERIFIED": "Account verified",
-    "STORE_ORDER_PLACED": "Store order placed"
+    "STORE_ORDER_PLACED": "Store order placed",
+    "WALLET_TOPPED_UP": "Wallet topped up"
   },
   "notifications": {
     "title": "Notifications",
@@ -839,5 +841,52 @@
     "notFoundTitle": "That page does not exist",
     "notFoundBody": "The link may be out of date, or the record it pointed at is gone.",
     "backToDemo": "Back to the demo"
+  },
+  "wallet": {
+    "title": "Wallet",
+    "subtitle": "Top up through QPay and pay for bookings and parts from your balance.",
+    "sandboxBadge": "QPay sandbox",
+    "productionBadge": "QPay live",
+    "balance": "Balance",
+    "toppedUpTotal": "Topped up",
+    "invoiceCount": "Invoices",
+    "topupTitle": "Top up",
+    "topupHint": "Pick an amount and QPay issues an invoice. Scan the QR with any Mongolian bank app, or open one from the list.",
+    "amountLabel": "Amount",
+    "amountHint": "Between {min} and {max}",
+    "createInvoice": "Create invoice",
+    "pendingTitle": "Waiting for payment",
+    "pendingHint": "Scan the QR in a bank app to pay. Once the payment goes through, press check — the balance updates the moment QPay confirms it.",
+    "qrAlt": "QPay payment QR code",
+    "banksLabel": "Open in a bank app",
+    "checkPayment": "Check payment",
+    "cancelInvoice": "Cancel",
+    "historyTitle": "Top-up history",
+    "noInvoices": "No top-ups yet",
+    "noInvoicesHint": "Your QPay invoices will be listed here.",
+    "status": {
+      "PENDING": "Pending",
+      "PAID": "Paid",
+      "CANCELLED": "Cancelled",
+      "FAILED": "Failed"
+    },
+    "states": {
+      "unpaid": "Not paid yet. Finish the payment in your bank app, then check again.",
+      "paid": "Payment received — your balance has been credited.",
+      "partial": "Less than the invoice arrived. Nothing was credited; contact support.",
+      "refunded": "This payment was refunded, so nothing was credited.",
+      "failed": "The payment attempt failed. Create a new invoice and try again."
+    },
+    "errors": {
+      "notConfigured": "QPay is not configured on this environment. Set the merchant credentials to enable top-ups.",
+      "unauthorized": "QPay rejected our credentials. Check the merchant username and password.",
+      "qpay": "QPay could not be reached. Try again in a moment.",
+      "notFound": "That invoice no longer exists.",
+      "validation": "Check the amount.",
+      "wholeTugrik": "Enter a whole number of tugrik.",
+      "topupTooSmall": "That is below the minimum top-up.",
+      "topupTooLarge": "That is above the maximum top-up.",
+      "generic": "Something went wrong. Try again."
+    }
   }
 }
