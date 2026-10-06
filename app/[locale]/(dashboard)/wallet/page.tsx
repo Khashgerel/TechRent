@@ -12,6 +12,7 @@ import { formatDate } from "@/lib/dates";
 import { formatMNT, formatMNTCompact } from "@/lib/money";
 import { getWalletPage } from "@/lib/payments/queries";
 import { qpayConfigured, qpayEnvironment } from "@/lib/payments/qpay";
+import { simulationEnabled } from "@/lib/payments/sandbox";
 import type { PaymentInvoiceStatus } from "@/lib/generated/prisma/enums";
 
 const STATUS_TONE: Record<
@@ -83,6 +84,7 @@ export default async function WalletPage({ params }: PageProps<"/[locale]/wallet
         <div className="flex flex-col gap-4 lg:col-span-3">
           {pending ? (
             <InvoicePanel
+              simulation={simulationEnabled()}
               invoice={{
                 id: pending.id,
                 amount: pending.amount,

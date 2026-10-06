@@ -4,6 +4,7 @@ import {
   planTopup,
   readCheck,
   senderInvoiceNo,
+  simulatedPaidCheck,
   type TopupAccounts,
 } from "../topup";
 import type { QpayCheckResponse, QpayPaymentRow } from "../qpay";
@@ -151,6 +152,29 @@ describe("planTopup", () => {
     expect(() => planTopup(0, ACCOUNTS)).toThrow();
     expect(() => planTopup(-100, ACCOUNTS)).toThrow();
     expect(() => planTopup(100.5, ACCOUNTS)).toThrow();
+  });
+});
+
+describe("simulatedPaidCheck", () => {
+  it("reads as a fully paid invoice through the normal rules", () => {
+    const outcome = readCheck(simulatedPaidCheck(500_000), 500_000);
+
+    expect(outcome.state).toBe("paid");
+    if (outcome.state === "paid") {
+      expect(outcome.paidAmount).toBe(500_000);
+      expect(outcome.paymentId).toMatch(/^SIMULATED-/);
+    }
+  });
+
+  it("is marked as simulated, so a settled row says where it came from", () => {
+    const response = simulatedPaidCheck(100);
+    expect(response.rows[0].payment_wallet).toMatch(/[Ss]imulated/);
+  });
+
+  it("never reads as paid for a larger invoice than it settles", () => {
+    // The simulation pays what the invoice asks, so a mismatch can only come
+    // from calling it with the wrong amount — which must not over-credit.
+    expect(readCheck(simulatedPaidCheck(100), 500).state).toBe("partial");
   });
 });
 

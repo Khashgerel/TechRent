@@ -8,6 +8,8 @@ import {
   settleTopup,
 } from "@/lib/payments/service";
 import { QpayApiError, QpayConfigError, qpayConfigured } from "@/lib/payments/qpay";
+import { simulationEnabled } from "@/lib/payments/sandbox";
+import { simulatedPaidCheck } from "@/lib/payments/topup";
 import { topupSchema, type TopupInput } from "@/lib/validation/payment";
 
 export type TopupResult =
@@ -83,6 +85,39 @@ export async function checkTopupAction(
     return { ok: true, state: result.outcome.state, credited: result.credited };
   } catch (error) {
     console.error("QPay payment check failed", error);
+    return { ok: false, error: describe(error) };
+  }
+}
+
+/**
+ * Settles an invoice from a fabricated "paid" answer instead of QPay's.
+ *
+ * Exists because QPay offers no way to pay a sandbox invoice from a desktop, so
+ * without this the crediting path can only be seen by arranging a real test
+ * payment. Refused unless `simulationEnabled()` agrees — not a production
+ * build, QPay on sandbox, and the switch set on purpose.
+ */
+export async function simulatePaymentAction(
+  locale: string,
+  invoiceId: string,
+): Promise<CheckResult> {
+  const session = await requireUser();
+
+  if (!simulationEnabled()) return { ok: false, error: "simulationDisabled" };
+
+  try {
+    const result = await settleTopup(
+      { id: invoiceId, userId: session.uid },
+      { check: async (_id, amount) => simulatedPaidCheck(amount) },
+    );
+    if (!result) return { ok: false, error: "notFound" };
+
+    revalidatePath(`/${locale}/wallet`);
+    revalidatePath(`/${locale}/store`);
+
+    return { ok: true, state: result.outcome.state, credited: result.credited };
+  } catch (error) {
+    console.error("Simulated QPay settle failed", error);
     return { ok: false, error: describe(error) };
   }
 }

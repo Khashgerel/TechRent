@@ -3,7 +3,13 @@ import "server-only";
 import { headers } from "next/headers";
 import { db } from "@/lib/db";
 import { postTransaction } from "@/lib/escrow/ledger";
-import { cancelInvoice, checkPayment, createInvoice, qpayEnvironment } from "./qpay";
+import {
+  cancelInvoice,
+  checkPayment,
+  createInvoice,
+  qpayEnvironment,
+  type QpayCheckResponse,
+} from "./qpay";
 import { planTopup, readCheck, senderInvoiceNo, type PaymentOutcome } from "./topup";
 import type { Prisma } from "@/lib/generated/prisma/client";
 import type { PaymentInvoiceStatus } from "@/lib/generated/prisma/enums";
@@ -91,13 +97,25 @@ export type SettleResult = {
 
 type InvoiceLookup = { id: string; userId?: string } | { senderInvoiceNo: string };
 
+export type SettleOptions = {
+  /**
+   * How to ask what was paid. Defaults to QPay's `payment/check`; the sandbox
+   * simulation substitutes a fabricated answer here, which keeps the decision
+   * rules and the crediting identical either way.
+   */
+  check?: (invoiceId: string, amount: number) => Promise<QpayCheckResponse>;
+};
+
 /**
  * Asks QPay about an invoice and, if it is paid, credits the wallet.
  *
  * Returns `null` when the invoice is unknown, so a stray callback is a
  * non-event rather than an error.
  */
-export async function settleTopup(lookup: InvoiceLookup): Promise<SettleResult | null> {
+export async function settleTopup(
+  lookup: InvoiceLookup,
+  options: SettleOptions = {},
+): Promise<SettleResult | null> {
   const invoice = await db.paymentInvoice.findFirst({
     where: "id" in lookup ? { id: lookup.id, userId: lookup.userId } : lookup,
   });
@@ -124,7 +142,8 @@ export async function settleTopup(lookup: InvoiceLookup): Promise<SettleResult |
     };
   }
 
-  const response = await checkPayment(invoice.invoiceId);
+  const ask = options.check ?? ((invoiceId: string) => checkPayment(invoiceId));
+  const response = await ask(invoice.invoiceId, invoice.amount);
   const outcome = readCheck(response, invoice.amount);
   const checkedAt = new Date();
 

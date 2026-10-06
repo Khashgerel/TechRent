@@ -886,7 +886,10 @@
       "wholeTugrik": "Enter a whole number of tugrik.",
       "topupTooSmall": "That is below the minimum top-up.",
       "topupTooLarge": "That is above the maximum top-up.",
-      "generic": "Something went wrong. Try again."
-    }
+      "generic": "Something went wrong. Try again.",
+      "simulationDisabled": "Simulated payments are turned off in this environment."
+    },
+    "simulatePaid": "Mark as paid (test)",
+    "simulateHint": "Development only: settles this invoice from a simulated QPay response, without a real payment."
   }
 }

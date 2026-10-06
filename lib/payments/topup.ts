@@ -91,6 +91,32 @@ export function readCheck(
   return { state: "unpaid" };
 }
 
+/**
+ * The answer QPay would have given for an invoice paid in full.
+ *
+ * QPay's V2 API has no endpoint that marks a sandbox invoice paid, so this
+ * stands in for one during development. It is deliberately pure and lives
+ * beside the real rules: a simulated payment is read by `readCheck` exactly as
+ * a genuine one is, which is the only way the simulation is worth anything.
+ * Whether it may be used at all is decided in `./sandbox`.
+ */
+export function simulatedPaidCheck(amount: number): QpayCheckResponse {
+  return {
+    count: 1,
+    paid_amount: amount,
+    rows: [
+      {
+        payment_id: `SIMULATED-${Date.now()}`,
+        payment_status: "PAID",
+        payment_amount: amount,
+        payment_currency: "MNT",
+        payment_wallet: "Simulated sandbox payment",
+        payment_type: "P2P",
+      },
+    ],
+  };
+}
+
 export type TopupAccounts = {
   wallet: string;
   external: string;

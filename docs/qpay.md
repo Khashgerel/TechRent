@@ -45,6 +45,40 @@ the only polling QPay permits. Their documentation is explicit: *"Do not check
 transactions constantly using a cron job. Use only the callback URL."* Nothing
 in this integration polls on a timer.
 
+## Making a sandbox invoice paid
+
+There is no API call for it. QPay's V2 surface covers creating invoices,
+cancelling them, and reading payments — nothing marks an invoice paid, and
+`payment/cancel` and `payment/refund` both act on payments that already exist.
+A sandbox invoice settles only when something actually pays it, through a bank
+or wallet app pointed at QPay's *sandbox*; production bank apps will not pay a
+sandbox QR, and the sandbox short link (`sandbox-s.qpay.mn/...`) does not serve
+a payment page from outside Mongolia.
+
+So there are two routes:
+
+**A real sandbox payment.** Ask your QPay contact to run a test payment against
+an invoice id, or for access to their sandbox wallet. Once it lands, the
+callback settles it — or press check.
+
+**Simulate the answer.** For development, set:
+
+```bash
+QPAY_SIMULATE_PAYMENTS="true"
+```
+
+A **"Mark as paid (test)"** button then appears next to the pending invoice. It
+settles the invoice from `simulatedPaidCheck`, a fabricated `payment/check`
+response saying the invoice was paid in full, and that response goes through
+exactly the same `readCheck` rules and the same `creditTopup` as a real one —
+which is the only reason the simulation is worth anything. The settled row keeps
+a `SIMULATED-…` payment id and a `payment_wallet` of "Simulated sandbox
+payment", so a faked top-up is always identifiable afterwards.
+
+It is refused unless all three hold: not a production build, `QPAY_ENV=sandbox`,
+and the switch set deliberately. Fake money cannot be created on the deployed
+demo.
+
 ## Settling exactly once
 
 QPay may call the callback more than once, and the visitor may press check at

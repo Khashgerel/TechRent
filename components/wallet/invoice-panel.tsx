@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Check, ExternalLink, Loader2, RefreshCw, X } from "lucide-react";
+import { Check, ExternalLink, FlaskConical, Loader2, RefreshCw, X } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import { formatMNT } from "@/lib/money";
 import {
   cancelTopupAction,
   checkTopupAction,
+  simulatePaymentAction,
 } from "@/app/[locale]/(dashboard)/wallet/actions";
 
 export type InvoicePanelData = {
@@ -32,12 +33,20 @@ export type InvoicePanelData = {
  * polling, and on localhost the callback cannot reach the app anyway — so the
  * press is both the supported path and the one that works while developing.
  */
-export function InvoicePanel({ invoice }: { invoice: InvoicePanelData }) {
+export function InvoicePanel({
+  invoice,
+  simulation,
+}: {
+  invoice: InvoicePanelData;
+  /** True when a payment can be faked — development sandbox only. */
+  simulation?: boolean;
+}) {
   const t = useTranslations("wallet");
   const locale = useLocale();
   const router = useRouter();
 
   const [checking, startCheck] = useTransition();
+  const [simulating, startSimulate] = useTransition();
   const [cancelling, startCancel] = useTransition();
   const [state, setState] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -153,6 +162,31 @@ export function InvoicePanel({ invoice }: { invoice: InvoicePanelData }) {
               )}
               {t("checkPayment")}
             </Button>
+
+            {simulation ? (
+              <Button
+                type="button"
+                variant="accent"
+                disabled={simulating}
+                title={t("simulateHint")}
+                onClick={() => {
+                  setError(null);
+                  setState(null);
+                  startSimulate(async () => {
+                    const result = await simulatePaymentAction(locale, invoice.id);
+                    if (!result.ok) {
+                      setError(result.error);
+                      return;
+                    }
+                    setState(result.state);
+                    router.refresh();
+                  });
+                }}
+              >
+                {simulating ? <Loader2 className="animate-spin" /> : <FlaskConical />}
+                {t("simulatePaid")}
+              </Button>
+            ) : null}
 
             <Button
               type="button"
