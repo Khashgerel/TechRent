@@ -225,3 +225,10 @@ Decided while building; the plan text above is left as approved.
 - **Every admin action writes an `AuditLog` row** in the same transaction as the
   change, and the console reads that trail back on the dashboard and the
   settings page.
+
+## What came next
+
+A client requirements spreadsheet arrived on 2026-10-27 with 51 features
+(A01–G08). The gap analysis against this build, and the phases that close it,
+live in [docs/requirements-plan.md](requirements-plan.md). The seven phases above
+are unchanged and remain the record of how the demo was built.
