@@ -2,12 +2,15 @@ import "server-only";
 
 import { createHash, randomInt } from "node:crypto";
 import { db } from "@/lib/db";
+// Defined in `./demo-gate`, which the demo password gate reads too, and which
+// stays free of `server-only` so it can be unit tested. Re-exported below
+// because this is where callers have always found it.
+import { isDemoMode } from "./demo-gate";
 
 const CODE_TTL_MS = 5 * 60 * 1000;
 const MAX_ATTEMPTS = 5;
 
-/** Demo deployments show the code on screen; production would send it over SMS. */
-export const isDemoMode = () => process.env.DEMO_MODE !== "false";
+export { isDemoMode };
 
 function hash(code: string) {
   return createHash("sha256").update(code).digest("hex");

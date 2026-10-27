@@ -3,9 +3,14 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { AuthCard, AuthLayout } from "@/components/auth/auth-card";
 import { Alert } from "@/components/ui/feedback";
+import { phoneLoginBlocked } from "@/lib/auth/demo-gate";
 import { readDemoOtp } from "@/lib/auth/login-actions";
 import { normalizePhone } from "@/lib/auth/otp";
 import { VerifyForm } from "./verify-form";
+
+// Reads an environment variable to decide whether to redirect, so it cannot be
+// prerendered into a static page that answers from the wrong side of the gate.
+export const dynamic = "force-dynamic";
 
 export default async function VerifyPage({
   params,
@@ -13,6 +18,9 @@ export default async function VerifyPage({
 }: PageProps<"/[locale]">) {
   const { locale } = await params;
   setRequestLocale(locale);
+
+  // The code screen is the other half of the phone door; shut it with the first.
+  if (phoneLoginBlocked()) redirect(`/${locale}/demo`);
 
   const { phone: rawPhone } = await searchParams;
   const phone = normalizePhone(String(rawPhone ?? ""));
