@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { PageHeader } from "@/components/shell/page-header";
 import { OrderForm } from "@/components/company/order-form";
@@ -10,7 +11,18 @@ export default async function NewOrderPage({
 }: PageProps<"/[locale]">) {
   const { locale } = await params;
   setRequestLocale(locale);
-  await requireRole(locale, "COMPANY");
+  const session = await requireRole(locale, "COMPANY");
+
+  // The company details are asked for here rather than at sign-up: a social
+  // sign-in gives us a name and nothing else, and this is the first point at
+  // which the rest actually matters.
+  const profile = await db.companyProfile.findUnique({
+    where: { userId: session.uid },
+    select: { id: true },
+  });
+  if (!profile) {
+    redirect(`/${locale}/company/profile?next=company/orders/new`);
+  }
 
   const t = await getTranslations("company.create");
   const sp = await searchParams;

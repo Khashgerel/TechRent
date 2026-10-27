@@ -15,7 +15,11 @@ export type OrderActionResult =
 
 async function requireCompany() {
   const session = await getSession();
-  if (!session || session.role !== "COMPANY") throw new Error("Not authorised");
+  // Membership, not the role being viewed: an owner who also places orders
+  // holds COMPANY while looking at their equipment dashboard.
+  if (!session || !session.roles.includes("COMPANY")) {
+    throw new Error("Not authorised");
+  }
   return session;
 }
 
@@ -43,6 +47,14 @@ export async function createOrderAction(
   input: OrderInput,
 ): Promise<OrderActionResult> {
   const session = await requireCompany();
+
+  // The page redirects to the profile form before showing the order form; this
+  // is the same rule enforced where it actually counts.
+  const profile = await db.companyProfile.findUnique({
+    where: { userId: session.uid },
+    select: { id: true },
+  });
+  if (!profile) return { ok: false, error: "profileRequired" };
 
   const parsed = orderSchema.safeParse(input);
   if (!parsed.success) {

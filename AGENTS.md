@@ -36,9 +36,16 @@ demo — real database and real state machines, simulated money.
   default locale. Add keys to both files — `check:messages` enforces it.
 - **Notifications** store a `type` + `data` payload and are translated at render
   time, so they are language-agnostic in storage.
-- **Auth** is a signed JWT cookie (`lib/auth/session.ts`), not Auth.js. The proxy
+- **Auth** is a signed JWT cookie (`lib/auth/session.ts`), not Auth.js. Google/Facebook sign-in is hand-rolled in `lib/auth/oauth.ts` and stores
+  no provider tokens. The proxy
   does an optimistic cookie-presence check; real enforcement is in server
   components and actions via `lib/auth/guards.ts`.
+- **Roles** are a set, not a column: `User.roles` is what an account may act
+  as and `User.activeRole` is what it is looking at. Guard with
+  `requireRole`, which asks whether a role is *held* — never compare
+  `session.role` with `===`. On a booking, what someone may do comes from
+  what they *are on that booking* (company, owner, operator), not from the
+  session; see `fireBookingEvent`.
 - Prisma 7 generates into `lib/generated/prisma` (gitignored) and needs a driver
   adapter — see `lib/db.ts`, which wraps `pool.query` with the retry policy in
   `lib/db-retry.ts` so a dropped connection is retried instead of 500-ing.

@@ -405,9 +405,9 @@ export async function seedStore(db: PrismaClient) {
   const bySku = new Map(parts.map((part) => [part.sku, part]));
 
   const [owners, operators, companies, revenue, external] = await Promise.all([
-    db.user.findMany({ where: { role: "OWNER" }, orderBy: { phone: "asc" } }),
-    db.user.findMany({ where: { role: "OPERATOR" }, orderBy: { phone: "asc" } }),
-    db.user.findMany({ where: { role: "COMPANY" }, orderBy: { phone: "asc" } }),
+    db.user.findMany({ where: { roles: { has: "OWNER" } }, orderBy: { phone: "asc" } }),
+    db.user.findMany({ where: { roles: { has: "OPERATOR" } }, orderBy: { phone: "asc" } }),
+    db.user.findMany({ where: { roles: { has: "COMPANY" } }, orderBy: { phone: "asc" } }),
     db.account.findFirstOrThrow({ where: { kind: "PLATFORM_REVENUE" } }),
     db.account.findFirstOrThrow({ where: { kind: "EXTERNAL" } }),
   ]);

@@ -10,7 +10,7 @@ import {
   phoneLoginBlocked,
 } from "./demo-gate";
 import { issueOtp, isDemoMode, normalizePhone, verifyOtp } from "./otp";
-import { createSession } from "./session";
+import { createSession, sessionFor } from "./session";
 
 const DEMO_OTP_COOKIE = "techrent_demo_otp";
 
@@ -79,20 +79,14 @@ export async function verifyCodeAction(
   if (!user) return { error: "notRegistered" };
   if (user.suspendedAt) return { error: "suspended" };
 
-  await createSession({
-    uid: user.id,
-    role: user.role,
-    name: user.name,
-    phone: user.phone,
-  });
+  await createSession(sessionFor(user));
 
   const store = await cookies();
   store.delete(DEMO_OTP_COOKIE);
 
-  redirect(`/${locale}/${homeForRole(user.role)}`);
+  redirect(`/${locale}/${homeForRole(user.activeRole)}`);
 }
 
-/** One-click sign-in for the demo personas. Only available in demo mode. */
 /**
  * Signs in as one of the seeded personas.
  *
@@ -116,14 +110,9 @@ export async function demoLoginAction(
   const user = await db.user.findUnique({ where: { id: userId } });
   if (!user) return { error: "noPersona" };
 
-  await createSession({
-    uid: user.id,
-    role: user.role,
-    name: user.name,
-    phone: user.phone,
-  });
+  await createSession(sessionFor(user));
 
-  redirect(`/${locale}/${homeForRole(user.role)}`);
+  redirect(`/${locale}/${homeForRole(user.activeRole)}`);
 }
 
 export async function readDemoOtp() {

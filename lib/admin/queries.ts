@@ -2,6 +2,7 @@ import "server-only";
 
 import { db } from "@/lib/db";
 import { balanceOf } from "@/lib/escrow/ledger";
+import { ROLE_VALUES } from "@/lib/roles";
 import type { Prisma } from "@/lib/generated/prisma/client";
 import type {
   Role,
@@ -61,7 +62,8 @@ export async function getAdminDashboard() {
   ]);
 
   const [
-    usersByRole,
+    userTotal,
+    roleMemberships,
     pendingUsers,
     suspendedUsers,
     equipmentCount,
@@ -76,7 +78,16 @@ export async function getAdminDashboard() {
     recentBookings,
     recentAudit,
   ] = await Promise.all([
-    db.user.groupBy({ by: ["role"], _count: { _all: true } }),
+    db.user.count(),
+    // Counted by membership rather than by the active role, because one
+    // account can hold several — counting the active one would hide an owner
+    // who happens to be looking at their operator dashboard.
+    Promise.all(
+      ROLE_VALUES.map(async (role) => ({
+        role,
+        count: await db.user.count({ where: { roles: { has: role } } }),
+      })),
+    ),
     db.user.count({ where: { verification: "PENDING" } }),
     db.user.count({ where: { suspendedAt: { not: null } } }),
     db.equipment.count(),
@@ -128,12 +139,12 @@ export async function getAdminDashboard() {
     .reduce((sum, e) => sum + e.amount, 0);
 
   const roleCounts = Object.fromEntries(
-    usersByRole.map((row) => [row.role, row._count._all]),
+    roleMemberships.map((row) => [row.role, row.count]),
   ) as Record<Role, number | undefined>;
 
   return {
     users: {
-      total: usersByRole.reduce((sum, row) => sum + row._count._all, 0),
+      total: userTotal,
       byRole: roleCounts,
       pending: pendingUsers,
       suspended: suspendedUsers,
@@ -174,7 +185,7 @@ export type UserFilters = {
 export async function listAdminUsers(filters: UserFilters = {}) {
   const where: Prisma.UserWhereInput = {};
 
-  if (filters.role) where.role = filters.role;
+  if (filters.role) where.roles = { has: filters.role };
   if (filters.verification) where.verification = filters.verification;
   if (filters.suspendedOnly) where.suspendedAt = { not: null };
 
@@ -323,7 +334,7 @@ export async function getStoreAdmin() {
     db.part.findMany({ orderBy: [{ category: "asc" }, { nameMn: "asc" }] }),
     db.storeOrder.findMany({
       include: {
-        user: { select: { name: true, role: true } },
+        user: { select: { name: true, activeRole: true } },
         items: { include: { part: { select: { nameMn: true, nameEn: true } } } },
       },
       orderBy: { createdAt: "desc" },

@@ -53,6 +53,9 @@ Development. For a new environment:
 | `SESSION_SECRET` | 32+ random bytes — `openssl rand -base64 32` |
 | `DEMO_MODE` | `true` — shows OTP codes in the UI instead of sending SMS |
 | `DEMO_PASSWORD` | Optional. Puts one shared password in front of the demo personas |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Optional. Enables Google sign-in |
+| `FACEBOOK_CLIENT_ID` / `FACEBOOK_CLIENT_SECRET` | Optional. Enables Facebook sign-in |
+| `OAUTH_BASE_URL` | Optional. Overrides the callback origin — only needed behind a tunnel |
 
 `SESSION_SECRET` signs the session cookie (`lib/auth/session.ts`). Changing it
 invalidates every existing session, which is a fine way to sign everyone out.
@@ -118,3 +121,35 @@ exercises the pooled connection and warms the routes.
 - **Costs.** Neon's free tier is enough for this dataset (roughly 3,500 rows).
   Vercel's hobby tier serves the app fine; every page is dynamic, so there is no
   ISR cache to think about.
+
+## Social sign-in
+
+Google and Facebook sign-in ships dormant: `lib/auth/oauth.ts` renders a button
+only for a provider that has **both** halves of its credential set, so with no
+variables there is nothing to see and nothing to break.
+
+Register these redirect URIs with each provider, matching the deployed origin
+exactly — a mismatch is the single most common cause of a failed sign-in:
+
+```
+https://<your-domain>/api/auth/google/callback
+https://<your-domain>/api/auth/facebook/callback
+```
+
+The origin is taken from `OAUTH_BASE_URL`, else Vercel's own
+`VERCEL_PROJECT_PRODUCTION_URL`, else the request host — so on Vercel it needs
+no configuration, and `OAUTH_BASE_URL` exists for tunnelled local testing.
+
+Two things worth knowing before pointing anyone at Facebook. A Facebook app
+stays in development mode until it passes review, during which only its own
+admins, developers and testers can sign in; and Facebook returns no email when
+the account has none verified or the person declines the permission, in which
+case the account is created without one and cannot be matched to an existing
+account by email later.
+
+Signing in opens an account that holds the **client** role only, with no profile
+and nothing else asked for. The company details are collected at
+`/[locale]/company/profile` the first time an order is started, and saving that
+form is also what grants the client role to an account that did not already hold
+it. No provider token is stored — the provider is asked who the visitor is once
+and never called again.

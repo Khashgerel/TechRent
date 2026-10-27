@@ -16,7 +16,9 @@ export type AcademyResult<T = undefined> =
 
 async function requireOperator() {
   const session = await getSession();
-  if (!session || session.role !== "OPERATOR") throw new Error("Not authorised");
+  if (!session || !session.roles.includes("OPERATOR")) {
+    throw new Error("Not authorised");
+  }
   return session;
 }
 

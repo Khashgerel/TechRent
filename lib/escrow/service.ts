@@ -160,15 +160,21 @@ export async function fireBookingEvent(
     },
   });
 
-  if (!EVENT_ACTOR[event].includes(actor.role as never)) {
+  // What this person *is* on this booking, which is the only thing that should
+  // decide what they may do to it. Taken from the booking itself rather than
+  // from the session's role, so an owner who also operates their own machine
+  // holds both capacities here and can act in either.
+  const capacities: ("COMPANY" | "OWNER" | "OPERATOR")[] = [];
+  if (booking.order.companyId === actor.id) capacities.push("COMPANY");
+  if (booking.equipment?.ownerId === actor.id) capacities.push("OWNER");
+  if (booking.operator?.userId === actor.id) capacities.push("OPERATOR");
+
+  // Not a party to this booking at all: it may as well not exist.
+  if (capacities.length === 0) throw new Error("Not found");
+
+  if (!EVENT_ACTOR[event].some((allowed) => capacities.includes(allowed))) {
     throw new NotPermittedError(event, actor.role);
   }
-
-  // The actor must actually be a party to this booking.
-  const isCompany = booking.order.companyId === actor.id;
-  const isOwner = booking.equipment?.ownerId === actor.id;
-  const isOperator = booking.operator?.userId === actor.id;
-  if (!isCompany && !isOwner && !isOperator) throw new Error("Not found");
 
   if (!canFire(event, booking.status)) {
     throw new InvalidTransitionError(event, booking.status);

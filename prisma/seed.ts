@@ -109,7 +109,8 @@ async function seedUsers() {
       data: {
         phone: owner.phone,
         name: owner.name,
-        role: "OWNER",
+        roles: ["OWNER"],
+        activeRole: "OWNER",
         ...verified,
         wallet: { create: { kind: "USER_WALLET", label: owner.name } },
         ownerProfile: {
@@ -133,7 +134,8 @@ async function seedUsers() {
       data: {
         phone: op.phone,
         name: op.name,
-        role: "OPERATOR",
+        roles: ["OPERATOR"],
+        activeRole: "OPERATOR",
         ...verified,
         wallet: { create: { kind: "USER_WALLET", label: op.name } },
         operatorProfile: {
@@ -161,7 +163,8 @@ async function seedUsers() {
       data: {
         phone: co.phone,
         name: co.name,
-        role: "COMPANY",
+        roles: ["COMPANY"],
+        activeRole: "COMPANY",
         ...verified,
         wallet: { create: { kind: "USER_WALLET", label: co.companyName } },
         companyProfile: {
@@ -184,7 +187,8 @@ async function seedUsers() {
       data: {
         phone: admin.phone,
         name: admin.name,
-        role: "ADMIN",
+        roles: ["ADMIN"],
+        activeRole: "ADMIN",
         ...verified,
         wallet: { create: { kind: "USER_WALLET", label: admin.name } },
       },
@@ -193,7 +197,7 @@ async function seedUsers() {
 }
 
 async function seedEquipment() {
-  const owners = await db.user.findMany({ where: { role: "OWNER" } });
+  const owners = await db.user.findMany({ where: { roles: { has: "OWNER" } } });
   const byPhone = new Map(owners.map((o) => [o.phone, o.id]));
 
   for (const [index, item] of [...EQUIPMENT, ...EXTRA_EQUIPMENT].entries()) {
@@ -361,7 +365,7 @@ async function seedNotifications() {
   // Settled work matters too: without it, anyone whose jobs have all finished —
   // which includes most operators — opens an empty notification feed. Taken per
   // person rather than platform-wide, so nobody is crowded out by busier users.
-  const owners = await db.user.findMany({ where: { role: "OWNER" }, select: { id: true } });
+  const owners = await db.user.findMany({ where: { roles: { has: "OWNER" } }, select: { id: true } });
   const operators = await db.operatorProfile.findMany({ select: { id: true, userId: true } });
 
   const payoutPayload = (booking: {

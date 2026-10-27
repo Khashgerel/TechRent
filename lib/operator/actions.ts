@@ -10,7 +10,9 @@ import { getSession } from "@/lib/auth/session";
  */
 export async function setAvailabilityAction(locale: string, available: boolean) {
   const session = await getSession();
-  if (!session || session.role !== "OPERATOR") throw new Error("Not authorised");
+  if (!session || !session.roles.includes("OPERATOR")) {
+    throw new Error("Not authorised");
+  }
 
   await db.operatorProfile.update({
     where: { userId: session.uid },

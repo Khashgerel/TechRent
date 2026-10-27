@@ -13,11 +13,15 @@ import { UserMenu } from "./user-menu";
 
 export function AppShell({
   role,
+  roles,
   name,
   badges,
   children,
 }: {
+  /** The role being viewed — what the user menu labels the account as. */
   role: Role;
+  /** Every role held, which is what the sidebar is built from. */
+  roles: Role[];
   name: string;
   badges?: NavBadges;
   children: React.ReactNode;
@@ -62,7 +66,7 @@ export function AppShell({
 
       <div className="flex flex-1">
         <aside className="sticky top-14 hidden h-[calc(100dvh-3.5rem)] w-60 shrink-0 flex-col border-r border-ink-200 bg-surface lg:flex">
-          <SidebarNav role={role} badges={badges} />
+          <SidebarNav roles={roles} badges={badges} />
         </aside>
 
         {mobileOpen ? (
@@ -84,7 +88,7 @@ export function AppShell({
                 </button>
               </div>
               <SidebarNav
-                role={role}
+                roles={roles}
                 badges={badges}
                 onNavigate={() => setMobileOpen(false)}
               />

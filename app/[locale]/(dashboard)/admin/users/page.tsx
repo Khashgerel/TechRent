@@ -114,7 +114,11 @@ export default async function AdminUsersPage({
 
                   <div className="flex shrink-0 flex-col items-end gap-1">
                     <div className="flex items-center gap-2">
-                      <Badge tone="neutral">{t(`roles.${user.role}`)}</Badge>
+                      {user.roles.map((role) => (
+                        <Badge key={role} tone="neutral">
+                          {t(`roles.${role}`)}
+                        </Badge>
+                      ))}
                       <Badge tone={STATUS_TONE[user.verification]}>
                         {t(`admin.users.status.${user.verification}`)}
                       </Badge>

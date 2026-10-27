@@ -28,12 +28,23 @@ enum VerificationStatus {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  phone     String   @unique
-  name      String
-  email     String?
-  role      Role
-  locale    String   @default("mn")
+  id String @id @default(cuid())
+  // Optional since a social sign-in carries no phone number. Still unique, so
+  // the phone + OTP path keeps working for the accounts that have one.
+  phone String? @unique
+  name  String
+  // Unique because it is how a returning social sign-in finds its account when
+  // the provider id hasn't been linked yet. Postgres allows many NULLs, so the
+  // seeded accounts that have no email are unaffected.
+  email String? @unique
+
+  // `roles` is what the account may act as, `activeRole` is what it is looking
+  // at now. One person can own machines, operate them and place orders, so
+  // membership — not a single column — decides what they may reach.
+  roles      Role[]
+  activeRole Role
+
+  locale    String  @default("mn")
   avatarUrl String?
 
   verification VerificationStatus @default(UNVERIFIED)
@@ -57,8 +68,37 @@ model User {
   storeOrders   StoreOrder[]
   auditLogs     AuditLog[]
   invoices      PaymentInvoice[]
+  oauthAccounts OAuthAccount[]
 
-  @@index([role])
+  @@index([activeRole])
+}
+
+enum OAuthProvider {
+  GOOGLE
+  FACEBOOK
+}
+
+/**
+ * A social identity linked to an account.
+ *
+ * Kept in its own table rather than as columns on User so one person can sign
+ * in with Google today and Facebook tomorrow and land on the same account.
+ * No tokens are stored: the provider is asked who the visitor is once, at
+ * sign-in, and nothing is called on their behalf afterwards.
+ */
+model OAuthAccount {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  provider          OAuthProvider
+  providerAccountId String
+  email             String?
+
+  createdAt DateTime @default(now())
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
 }
 
 model OtpCode {

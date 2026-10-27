@@ -17,21 +17,29 @@ export async function requireSession(locale: string): Promise<SessionPayload> {
 
   const user = await db.user.findUnique({
     where: { id: session.uid },
-    select: { id: true, role: true, suspendedAt: true },
+    select: { id: true, activeRole: true, roles: true, suspendedAt: true },
   });
 
   if (!user || user.suspendedAt) redirect(`/logout?locale=${locale}`);
 
-  // The role can change under a live session; trust the database, not the token.
-  return { ...session, role: user.role };
+  // Roles can change under a live session; trust the database, not the token.
+  return { ...session, role: user.activeRole, roles: user.roles };
 }
 
+/**
+ * Guards an area of the app.
+ *
+ * This asks whether the visitor *holds* one of these roles, not whether it is
+ * the one they happen to be looking at. Someone who owns machines, operates
+ * them and places orders reaches all three areas without switching anything —
+ * which is the whole point of an account holding several roles.
+ */
 export async function requireRole(
   locale: string,
   ...roles: Role[]
 ): Promise<SessionPayload> {
   const session = await requireSession(locale);
-  if (!roles.includes(session.role)) {
+  if (!roles.some((role) => session.roles.includes(role))) {
     redirect(`/${locale}/${homeForRole(session.role)}`);
   }
   return session;

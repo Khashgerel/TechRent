@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import type { Role } from "@/lib/generated/prisma/enums";
+import { orderedRoles } from "@/lib/roles";
 import { ADMIN_SETTINGS, NAV, SHARED_ITEMS, type NavItem } from "./nav-config";
 
 export type NavBadges = Partial<Record<"notifications" | "offers" | "jobs", number>>;
@@ -62,16 +63,18 @@ function NavLink({
 }
 
 export function SidebarNav({
-  role,
+  roles,
   badges = {},
   onNavigate,
 }: {
-  role: Role;
+  roles: Role[];
   badges?: NavBadges;
   onNavigate?: () => void;
 }) {
   const t = useTranslations("nav");
-  const sections = NAV[role];
+  // Every area this account may reach, in the product's own role order. Someone
+  // who owns machines, operates them and orders work sees all three.
+  const sections = orderedRoles(roles).flatMap((role) => NAV[role]);
 
   return (
     <nav className="flex flex-1 flex-col gap-6 overflow-y-auto px-3 py-4 scrollbar-thin">
@@ -95,7 +98,7 @@ export function SidebarNav({
         {SHARED_ITEMS.map((item) => (
           <NavLink key={item.href} item={item} badges={badges} onNavigate={onNavigate} />
         ))}
-        {role === "ADMIN" ? (
+        {roles.includes("ADMIN") ? (
           <NavLink item={ADMIN_SETTINGS} badges={badges} onNavigate={onNavigate} />
         ) : null}
       </div>

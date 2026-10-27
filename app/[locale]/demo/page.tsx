@@ -1,7 +1,9 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { AuthLayout } from "@/components/auth/auth-card";
+import { OAuthButtons } from "@/components/auth/oauth-buttons";
 import { db } from "@/lib/db";
 import { demoGateEnabled } from "@/lib/auth/demo-gate";
+import { oauthEnabled } from "@/lib/auth/oauth";
 import type { Role } from "@/lib/generated/prisma/enums";
 import { DemoPicker, type Persona } from "./demo-picker";
 
@@ -16,29 +18,45 @@ export default async function DemoPage({ params }: PageProps<"/[locale]">) {
   setRequestLocale(locale);
 
   const t = await getTranslations("demo");
+  const tAuth = await getTranslations("auth");
 
   // One representative account per role, oldest first so the seed order wins.
   const users = await db.user.findMany({
-    where: { role: { in: ROLE_ORDER } },
+    where: { roles: { hasSome: ROLE_ORDER } },
     orderBy: { createdAt: "asc" },
     include: { companyProfile: true, operatorProfile: true, ownerProfile: true },
   });
 
-  const personas: Persona[] = ROLE_ORDER.map((role) =>
-    users.find((u) => u.role === role),
-  )
-    .filter((u) => u !== undefined)
-    .map((user) => ({
-      id: user.id,
-      name: user.name,
-      role: user.role,
-      subtitle:
-        user.companyProfile?.companyName ??
-        user.ownerProfile?.companyName ??
-        (user.operatorProfile
-          ? `${user.operatorProfile.aimag} · ${user.operatorProfile.yearsExperience} жил`
-          : `+976 ${user.phone}`),
-    }));
+  // One representative account per role. Built in a single pass so each card
+  // keeps the role it was chosen for — an account may hold several, and the
+  // card should say which one it is standing in for.
+  // Now that an account can hold several roles, the same person would
+  // otherwise fill three cards. Hand out distinct people where there are
+  // enough to go round, and fall back to reusing one where there aren't.
+  const taken = new Set<string>();
+
+  const personas: Persona[] = ROLE_ORDER.flatMap((role) => {
+    const holders = users.filter((u) => u.roles.includes(role));
+    const user = holders.find((u) => !taken.has(u.id)) ?? holders[0];
+    if (!user) return [];
+    taken.add(user.id);
+
+    return [
+      {
+        id: user.id,
+        name: user.name,
+        role,
+        subtitle:
+          user.companyProfile?.companyName ??
+          user.ownerProfile?.companyName ??
+          (user.operatorProfile
+            ? `${user.operatorProfile.aimag} · ${user.operatorProfile.yearsExperience} жил`
+            : user.phone
+              ? `+976 ${user.phone}`
+              : (user.email ?? "")),
+      },
+    ];
+  });
 
   const gated = demoGateEnabled();
 
@@ -55,6 +73,14 @@ export default async function DemoPage({ params }: PageProps<"/[locale]">) {
         </div>
 
         <DemoPicker personas={personas} locale={locale} gated={gated} />
+
+        {oauthEnabled() ? (
+          <div className="mt-8">
+            {/* Open to anyone: the password guards the seeded personas, not
+                people signing up with an account of their own. */}
+            <OAuthButtons locale={locale} label={tAuth("orContinueWith")} />
+          </div>
+        ) : null}
       </div>
     </AuthLayout>
   );

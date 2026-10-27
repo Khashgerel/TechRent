@@ -106,7 +106,8 @@ export async function seedPendingUsers(db: PrismaClient) {
       data: {
         phone: person.phone,
         name: person.name,
-        role: person.role,
+        roles: [person.role],
+        activeRole: person.role,
         // Registered and waiting: no `verifiedAt`, nothing traded yet.
         verification: "PENDING",
         wallet: { create: { kind: "USER_WALLET", label: person.name } },

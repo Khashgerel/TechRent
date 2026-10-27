@@ -17,7 +17,7 @@ export type ActionResult =
 
 async function requireOwner() {
   const session = await getSession();
-  if (!session || session.role !== "OWNER") {
+  if (!session || !session.roles.includes("OWNER")) {
     throw new Error("Not authorised");
   }
   return session;

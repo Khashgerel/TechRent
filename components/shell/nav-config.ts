@@ -1,5 +1,6 @@
 import {
   BadgeCheck,
+  Building2,
   BookOpen,
   CalendarDays,
   ClipboardList,
@@ -87,6 +88,7 @@ export const NAV: Record<Role, NavSection[]> = {
         },
         { href: "/company/progress", labelKey: "company.progress", icon: BadgeCheck },
         { href: "/company/reviews", labelKey: "company.reviews", icon: Star },
+        { href: "/company/profile", labelKey: "company.profile", icon: Building2 },
       ],
     },
   ],

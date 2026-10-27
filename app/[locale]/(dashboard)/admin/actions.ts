@@ -29,7 +29,9 @@ export type AdminResult =
 
 async function requireAdmin() {
   const session = await getSession();
-  if (!session || session.role !== "ADMIN") throw new Error("Not authorised");
+  if (!session || !session.roles.includes("ADMIN")) {
+    throw new Error("Not authorised");
+  }
   return session;
 }
 

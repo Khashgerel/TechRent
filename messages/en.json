@@ -65,7 +65,8 @@
       "orders": "My orders",
       "create": "New order",
       "progress": "Job progress",
-      "reviews": "Reviews"
+      "reviews": "Reviews",
+      "profile": "Company details"
     },
     "admin": {
       "dashboard": "Dashboard",
@@ -100,8 +101,14 @@
       "mismatch": "That code is incorrect.",
       "tooManyAttempts": "Too many attempts. Request a new code.",
       "suspended": "This account has been suspended.",
-      "phoneLoginDisabled": "Phone sign-in is turned off on this demo. Use the demo password."
-    }
+      "phoneLoginDisabled": "Phone sign-in is turned off on this demo. Use the demo password.",
+      "oauthDenied": "Sign-in was cancelled.",
+      "oauthState": "That sign-in link expired. Please try again.",
+      "oauthProfile": "We could not read your profile from that provider.",
+      "oauthFailed": "Sign-in failed. Please try again."
+    },
+    "orContinueWith": "or continue with",
+    "socialOnlySubtitle": "Sign in with Google or Facebook to create your own account."
   },
   "demo": {
     "title": "Demo mode",
@@ -286,7 +293,10 @@
     "monthlyAboveDaily": "A month can't cost more than 30 daily rates.",
     "endBeforeStart": "The end date can't come before the start date.",
     "invalid": "That value isn't valid.",
-    "levelOrder": "Advanced must sit above intermediate."
+    "levelOrder": "Advanced must sit above intermediate.",
+    "generic": "Something went wrong. Please try again.",
+    "invalidPhone": "Enter an 8-digit phone number.",
+    "phoneTaken": "That number is already linked to another account."
   },
   "company": {
     "greeting": "Hello, {name}!",
@@ -374,6 +384,20 @@
       "rejectedNoOperator": "{count} had no certified operator free.",
       "rejectedStatus": "{count} are in maintenance or inactive.",
       "suggestion": "Try shifting your dates, or dropping the operator requirement."
+    },
+    "profile": {
+      "title": "Your company details",
+      "subtitle": "We need these before your first order. It only takes a moment.",
+      "cardTitle": "Company details",
+      "companyName": "Company name",
+      "regNumber": "Registration number",
+      "industry": "Industry",
+      "aimag": "Province / city",
+      "district": "District",
+      "contactName": "Contact name",
+      "phone": "Phone number",
+      "save": "Save and continue",
+      "requiredNotice": "Add your company details to place an order."
     }
   },
   "match": {

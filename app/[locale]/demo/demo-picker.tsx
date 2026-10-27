@@ -53,20 +53,22 @@ export function DemoPicker({
 }) {
   const t = useTranslations("demo");
   const tRoles = useTranslations("roles");
-  const [selected, setSelected] = useState<string | null>(null);
+  // Tracked by role, not by user id: one account can hold several roles and
+  // so can appear on more than one card.
+  const [selected, setSelected] = useState<Role | null>(null);
   const [state, formAction] = useActionState<DemoState, FormData>(
     demoLoginAction.bind(null, locale),
     {},
   );
 
-  const active = personas.find((p) => p.id === selected) ?? null;
+  const active = personas.find((p) => p.role === selected) ?? null;
 
   return (
     <form action={formAction}>
       <div className="grid gap-3 sm:grid-cols-2">
         {personas.map((persona) => {
           const Icon = ROLE_ICON[persona.role];
-          const isActive = persona.id === selected;
+          const isActive = persona.role === selected;
 
           const body = (
             <>
@@ -103,17 +105,17 @@ export function DemoPicker({
           // name/value carries the persona — no hidden field needed.
           return gated ? (
             <button
-              key={persona.id}
+              key={persona.role}
               type="button"
               aria-pressed={isActive}
-              onClick={() => setSelected(persona.id)}
+              onClick={() => setSelected(persona.role)}
               className={className}
             >
               {body}
             </button>
           ) : (
             <button
-              key={persona.id}
+              key={persona.role}
               type="submit"
               name="userId"
               value={persona.id}
@@ -136,7 +138,7 @@ export function DemoPicker({
               >
                 <Input
                   // Remounts per persona so a stale guess never carries over.
-                  key={active.id}
+                  key={active.role}
                   name="password"
                   type="password"
                   autoComplete="current-password"

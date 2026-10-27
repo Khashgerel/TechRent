@@ -9,10 +9,39 @@ const MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
 
 export type SessionPayload = {
   uid: string;
+  /**
+   * The role the visitor is currently looking at — their `activeRole`.
+   *
+   * Kept under the old name because that is what it has always meant to the
+   * pages that read it: which dashboard am I in. What a visitor is *allowed*
+   * to reach is `roles`, and that is what the guards check.
+   */
   role: Role;
+  /** Every role this account may act as. One person can hold several. */
+  roles: Role[];
   name: string;
-  phone: string;
+  phone: string | null;
 };
+
+/**
+ * Builds the session payload from a user row — the one place that decides what
+ * a session carries, so the phone, demo and social sign-in paths cannot drift.
+ */
+export function sessionFor(user: {
+  id: string;
+  activeRole: Role;
+  roles: Role[];
+  name: string;
+  phone: string | null;
+}): SessionPayload {
+  return {
+    uid: user.id,
+    role: user.activeRole,
+    roles: user.roles,
+    name: user.name,
+    phone: user.phone,
+  };
+}
 
 function secretKey() {
   const secret = process.env.SESSION_SECRET;
@@ -36,11 +65,21 @@ export async function verifySessionToken(
   try {
     const { payload } = await jwtVerify(token, secretKey());
     if (typeof payload.uid !== "string") return null;
+
+    const role = payload.role as Role;
+    // Tokens signed before multi-role existed carry no `roles`. Treating the
+    // active role as the only membership keeps those sessions working rather
+    // than signing everyone out on deploy.
+    const roles = Array.isArray(payload.roles)
+      ? (payload.roles as Role[])
+      : [role];
+
     return {
       uid: payload.uid,
-      role: payload.role as Role,
+      role,
+      roles,
       name: payload.name as string,
-      phone: payload.phone as string,
+      phone: (payload.phone as string | null) ?? null,
     };
   } catch {
     return null;

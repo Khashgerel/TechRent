@@ -24,13 +24,20 @@ export async function getBookingFor(
 
   if (!booking) return null;
 
+  // Capacities on *this* booking, which is what decides the buttons — mirroring
+  // `fireBookingEvent`, so the UI never offers a move the service would refuse.
   const isCompany = booking.order.companyId === viewer.id;
   const isOwner = booking.equipment?.ownerId === viewer.id;
   const isOperator = booking.operator?.userId === viewer.id;
-  if (!isCompany && !isOwner && !isOperator) return null;
+
+  const capacities: ("COMPANY" | "OWNER" | "OPERATOR")[] = [];
+  if (isCompany) capacities.push("COMPANY");
+  if (isOwner) capacities.push("OWNER");
+  if (isOperator) capacities.push("OPERATOR");
+  if (capacities.length === 0) return null;
 
   const events = availableEvents(booking.status).filter((event: BookingEvent) =>
-    EVENT_ACTOR[event].includes(viewer.role as never),
+    EVENT_ACTOR[event].some((allowed) => capacities.includes(allowed)),
   );
 
   // What this viewer still owes a review on, once the booking has settled.

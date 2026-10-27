@@ -36,7 +36,9 @@ export default async function ServiceRequestsPage({
   const [requests, equipment] = await Promise.all([
     getServiceRequests(session.uid),
     // Only owners have machines to attach; everyone else gets the plain form.
-    session.role === "OWNER" ? getOwnEquipment(session.uid) : Promise.resolve([]),
+    session.roles.includes("OWNER")
+      ? getOwnEquipment(session.uid)
+      : Promise.resolve([]),
   ]);
 
   return (

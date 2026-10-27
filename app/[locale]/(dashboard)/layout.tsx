@@ -19,6 +19,7 @@ export default async function DashboardLayout({
   return (
     <AppShell
       role={session.role}
+      roles={session.roles}
       name={session.name}
       badges={{ notifications: unread }}
     >
