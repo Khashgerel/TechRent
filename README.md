@@ -13,6 +13,7 @@ gateway attached.
 
 - **Plan and status** — [docs/plan.md](docs/plan.md)
 - **Requirements gap plan** — [docs/requirements-plan.md](docs/requirements-plan.md)
+- **Auth rework (staged)** — [docs/auth-rework-plan.md](docs/auth-rework-plan.md)
 - **QPay payments (sandbox)** — [docs/qpay.md](docs/qpay.md)
 - **Demo script** — [docs/walkthrough.md](docs/walkthrough.md)
 - **Deploying** — [docs/deploy.md](docs/deploy.md)
