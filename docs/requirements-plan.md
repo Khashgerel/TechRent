@@ -33,8 +33,8 @@ Spreadsheet priorities are carried through verbatim: **Required**
 
 | ID | Requirement | Priority | State | Evidence |
 |---|---|---|---|---|
-| **A01** | Registration and login | Required | partial | Phone + OTP login works ([lib/auth/otp.ts](../lib/auth/otp.ts), [lib/auth/login-actions.ts](../lib/auth/login-actions.ts)) but `requestCodeAction` refuses unknown phones — **there is no sign-up**, and no email path |
-| **A02** | Multi-role users | Required | missing | `User.role` is one scalar; session, guards, nav and `EVENT_ACTOR` all key off it |
+| **A01** | Registration and login | Required | **done** (2026-10-28) | Google/Facebook sign-up opens an account with no further questions ([lib/auth/oauth.ts](../lib/auth/oauth.ts)); dormant until the provider secrets are set. Phone + OTP still works where the demo password gate is off |
+| **A02** | Multi-role users | Required | **done** (2026-10-28) | `User.roles` + `activeRole`; `requireRole` asks what is *held*, and booking permissions come from what the actor is on that booking |
 | **A03** | Identity / company verification | Required | partial | `User.verification` + admin verify/reject ([admin/users](<../app/[locale]/(dashboard)/admin/users/page.tsx>)); no documents, no per-document review trail |
 | **A04** | Licence / qualification verification | Required | missing | Only proxies: `OperatorProfile.skills[]`, `level`, Academy `Certificate` |
 | **A05** | Ratings and reviews | Recommended | **done** | `Review` with punctuality/quality/care subscores, two-way, feeds `ratingAvg` |
@@ -85,7 +85,7 @@ Spreadsheet priorities are carried through verbatim: **Required**
 | **G07** | Admin permissions and audit trail | Required | partial | `AuditLog` is written in-transaction by every admin action; **`ADMIN` is one flat role** |
 | **G08** | Announcements | Recommended | missing | — |
 
-**Totals:** 9 done, 18 partial, 23 missing, 1 out of scope. Of the 40 Required
+**Totals (as first written):** 9 done, 18 partial, 23 missing, 1 out of scope. Of the 40 Required
 rows, 8 are done and 16 are partial — so the required work is more extension
 than greenfield, except for category D (contracts, inspections, reports,
 settlement), where 7 of 7 required rows are missing outright.
@@ -290,6 +290,11 @@ at something runnable and demo-able, as the original plan's phases did.
 
 ### Phase 8 — Identity, roles and approval *(large)*
 **A01, A02, A03, A04, G02, G07**
+
+> **Partly delivered, 2026-10-28.** A02 multi-role and A01 self-registration are
+> built and deployed, along with the order-time profile gate that pays for them.
+> What remains in this phase is A03 identity documents, A04 licence records,
+> G02 the equipment and licence approval queues, and G07 staff permission levels.
 
 Multi-role users per decision 1 (schema + migration + guards + nav + role
 switcher + the escrow capacity derivation). Self-registration: a sign-up form
