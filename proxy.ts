@@ -5,7 +5,9 @@ import { routing } from "./i18n/routing";
 const intlMiddleware = createMiddleware(routing);
 
 /** Route prefixes reachable without a session. Everything else needs one. */
-const PUBLIC_PATHS = ["/", "/login", "/verify", "/demo", "/store"];
+// `/staff-login` is public in the sense that it needs no session — it is
+// linked from nowhere and protected by the password itself.
+const PUBLIC_PATHS = ["/", "/login", "/verify", "/demo", "/store", "/staff-login"];
 
 const SESSION_COOKIE = "techrent_session";
 

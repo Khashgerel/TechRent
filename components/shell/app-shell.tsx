@@ -7,6 +7,7 @@ import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import type { Role } from "@/lib/generated/prisma/enums";
 import { Logo } from "./logo";
+import { ImpersonationBanner } from "./impersonation-banner";
 import { LanguageSwitcher } from "./language-switcher";
 import { SidebarNav, type NavBadges } from "./sidebar";
 import { UserMenu } from "./user-menu";
@@ -16,6 +17,7 @@ export function AppShell({
   roles,
   name,
   badges,
+  impersonator,
   children,
 }: {
   /** The role being viewed — what the user menu labels the account as. */
@@ -24,6 +26,8 @@ export function AppShell({
   roles: Role[];
   name: string;
   badges?: NavBadges;
+  /** The staff member behind this session, when it is an impersonated one. */
+  impersonator?: string | null;
   children: React.ReactNode;
 }) {
   const t = useTranslations("nav");
@@ -32,6 +36,10 @@ export function AppShell({
 
   return (
     <div className="flex min-h-dvh flex-col">
+      {impersonator ? (
+        <ImpersonationBanner subjectName={name} actorName={impersonator} />
+      ) : null}
+
       <header className="sticky top-0 z-40 flex h-14 items-center gap-3 border-b border-ink-200 bg-surface/90 px-4 backdrop-blur-md">
         <button
           type="button"

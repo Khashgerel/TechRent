@@ -862,7 +862,8 @@
       "course_unpublish": "Course unpublished",
       "part_update": "Part updated",
       "storeOrder_status": "Store order status",
-      "serviceRequest_status": "Service request status"
+      "serviceRequest_status": "Service request status",
+      "user_impersonate": "Signed in as another account"
     }
   },
   "errors": {
@@ -923,5 +924,24 @@
     },
     "simulatePaid": "Mark as paid (test)",
     "simulateHint": "Development only: settles this invoice from a simulated QPay response, without a real payment."
+  },
+  "impersonation": {
+    "banner": "You are signed in as {subject}. You are really {actor}.",
+    "exit": "Back to staff",
+    "impersonate": "Sign in as",
+    "notStaff": "Only staff can do that.",
+    "notFound": "That account is unavailable.",
+    "staffTarget": "Staff accounts cannot be impersonated."
+  },
+  "staffAuth": {
+    "title": "Staff sign-in",
+    "subtitle": "For platform administrators. Everyone else signs in from the main site.",
+    "username": "Username",
+    "password": "Password",
+    "submit": "Sign in",
+    "errors": {
+      "invalid": "Wrong username or password.",
+      "locked": "Too many attempts. Try again shortly."
+    }
   }
 }

@@ -2,13 +2,14 @@
 
 import { useState, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { BadgeCheck, Ban, Loader2, RotateCcw, X } from "lucide-react";
+import { BadgeCheck, Ban, Loader2, LogIn, RotateCcw, X } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import {
   setSuspendedAction,
   setVerificationAction,
 } from "@/app/[locale]/(dashboard)/admin/actions";
+import { startImpersonationAction } from "@/lib/admin/impersonation";
 import type { VerificationStatus } from "@/lib/generated/prisma/enums";
 
 /**
@@ -20,13 +21,17 @@ export function UserActions({
   verification,
   suspended,
   isSelf,
+  isStaff,
 }: {
   userId: string;
   verification: VerificationStatus;
   suspended: boolean;
   isSelf: boolean;
+  /** Staff accounts cannot be impersonated — see `lib/admin/impersonation.ts`. */
+  isStaff: boolean;
 }) {
   const t = useTranslations("admin.users");
+  const tImp = useTranslations("impersonation");
   const locale = useLocale();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -70,6 +75,23 @@ export function UserActions({
           {t("reject")}
         </Button>
       ) : null}
+
+      {isSelf || isStaff || suspended ? null : (
+        <Button
+          size="sm"
+          variant="subtle"
+          disabled={pending}
+          onClick={() =>
+            run(async () => {
+              const result = await startImpersonationAction(userId);
+              return result ? { ok: false, error: result.error } : undefined;
+            })
+          }
+        >
+          <LogIn />
+          {tImp("impersonate")}
+        </Button>
+      )}
 
       {isSelf ? null : suspended ? (
         <Button

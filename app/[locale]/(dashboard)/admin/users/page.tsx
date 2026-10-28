@@ -135,6 +135,7 @@ export default async function AdminUsersPage({
                       verification={user.verification}
                       suspended={Boolean(user.suspendedAt)}
                       isSelf={user.id === session.uid}
+                      isStaff={user.roles.includes("ADMIN")}
                     />
                   </div>
                 </div>

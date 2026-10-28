@@ -44,6 +44,13 @@ model User {
   roles      Role[]
   activeRole Role
 
+  // Staff sign-in only. Marketplace accounts arrive through a social provider
+  // and never hold either of these; staff accounts hold both and nothing else.
+  // Nullable so a staff account can exist before `npm run admin:create` gives
+  // it a password — there is deliberately no default password anywhere.
+  username     String? @unique
+  passwordHash String?
+
   locale    String  @default("mn")
   avatarUrl String?
 
@@ -71,6 +78,28 @@ model User {
   oauthAccounts OAuthAccount[]
 
   @@index([activeRole])
+}
+
+/**
+ * Failed staff sign-in attempts.
+ *
+ * Counted in the database rather than in memory because consecutive requests
+ * on Vercel may land on different lambdas, where an in-process counter would
+ * reset itself and throttle nothing. One row per subject — a username or a
+ * client address — reset on success.
+ */
+model LoginAttempt {
+  id      String @id @default(cuid())
+  /** "username:bold" or "ip:1.2.3.4" — the thing being rate limited. */
+  subject String @unique
+
+  failures    Int      @default(0)
+  firstFailed DateTime @default(now())
+  lastFailed  DateTime @default(now())
+  /** Set while locked out; cleared on success. */
+  lockedUntil DateTime?
+
+  @@index([lockedUntil])
 }
 
 enum OAuthProvider {

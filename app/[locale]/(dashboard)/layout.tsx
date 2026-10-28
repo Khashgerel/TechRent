@@ -21,6 +21,7 @@ export default async function DashboardLayout({
       role={session.role}
       roles={session.roles}
       name={session.name}
+      impersonator={session.actor?.name ?? null}
       badges={{ notifications: unread }}
     >
       {children}

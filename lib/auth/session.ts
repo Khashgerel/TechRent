@@ -21,6 +21,12 @@ export type SessionPayload = {
   roles: Role[];
   name: string;
   phone: string | null;
+  /**
+   * Set only while a staff member is impersonating this account: who they
+   * really are. Its presence is what the banner and the exit button key off,
+   * and what every audit row about this session should name.
+   */
+  actor?: { uid: string; name: string };
 };
 
 /**
@@ -51,11 +57,16 @@ function secretKey() {
   return new TextEncoder().encode(secret);
 }
 
-export async function signSessionToken(payload: SessionPayload) {
+export async function signSessionToken(
+  payload: SessionPayload,
+  maxAgeSeconds: number = MAX_AGE_SECONDS,
+) {
   return new SignJWT({ ...payload })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime(`${MAX_AGE_SECONDS}s`)
+    // The cookie and the token expire together, so clearing one cannot leave
+    // the other usable.
+    .setExpirationTime(`${maxAgeSeconds}s`)
     .sign(secretKey());
 }
 
@@ -80,21 +91,27 @@ export async function verifySessionToken(
       roles,
       name: payload.name as string,
       phone: (payload.phone as string | null) ?? null,
+      ...(payload.actor
+        ? { actor: payload.actor as { uid: string; name: string } }
+        : {}),
     };
   } catch {
     return null;
   }
 }
 
-export async function createSession(payload: SessionPayload) {
-  const token = await signSessionToken(payload);
+export async function createSession(
+  payload: SessionPayload,
+  maxAgeSeconds: number = MAX_AGE_SECONDS,
+) {
+  const token = await signSessionToken(payload, maxAgeSeconds);
   const store = await cookies();
   store.set(COOKIE_NAME, token, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: MAX_AGE_SECONDS,
+    maxAge: maxAgeSeconds,
   });
 }
 
@@ -109,5 +126,8 @@ export async function destroySession() {
   const store = await cookies();
   store.delete(COOKIE_NAME);
 }
+
+/** An impersonated session is short-lived: a forgotten tab is a staff-level hole. */
+export const IMPERSONATION_MAX_AGE_SECONDS = 60 * 60;
 
 export const SESSION_COOKIE_NAME = COOKIE_NAME;
