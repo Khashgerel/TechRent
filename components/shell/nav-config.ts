@@ -98,6 +98,7 @@ export const NAV: Record<Role, NavSection[]> = {
       items: [
         { href: "/admin", labelKey: "admin.dashboard", icon: LayoutDashboard },
         { href: "/admin/users", labelKey: "admin.users", icon: Users },
+        { href: "/admin/equipment", labelKey: "admin.equipment", icon: Truck },
         { href: "/admin/transactions", labelKey: "admin.transactions", icon: Receipt },
         { href: "/admin/academy", labelKey: "admin.academy", icon: BookOpen },
         { href: "/admin/store", labelKey: "admin.store", icon: Package },
@@ -108,6 +109,7 @@ export const NAV: Record<Role, NavSection[]> = {
 
 /** Appended to every role's sidebar. */
 export const SHARED_ITEMS: NavItem[] = [
+  { href: "/account", labelKey: "account", icon: UserRound },
   { href: "/wallet", labelKey: "wallet", icon: Wallet },
   { href: "/store", labelKey: "store", icon: ShoppingCart },
 ];

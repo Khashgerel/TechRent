@@ -2,17 +2,15 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
-import { getSession } from "@/lib/auth/session";
+import { requireActorRole } from "@/lib/auth/guards";
 
 /**
  * An operator marking themselves unavailable removes them from matching
  * immediately — the engine treats availability as a hard gate.
  */
 export async function setAvailabilityAction(locale: string, available: boolean) {
-  const session = await getSession();
-  if (!session || !session.roles.includes("OPERATOR")) {
-    throw new Error("Not authorised");
-  }
+  // Roles from the database, not the cookie: see `requireActorRole`.
+  const session = await requireActorRole("OPERATOR");
 
   await db.operatorProfile.update({
     where: { userId: session.uid },

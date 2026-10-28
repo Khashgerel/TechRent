@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
-import { getSession } from "@/lib/auth/session";
+import { requireActorRole } from "@/lib/auth/guards";
 import {
   applyCourseCompletion,
   certificateSerial,
@@ -15,11 +15,7 @@ export type AcademyResult<T = undefined> =
   | { ok: false; error: string };
 
 async function requireOperator() {
-  const session = await getSession();
-  if (!session || !session.roles.includes("OPERATOR")) {
-    throw new Error("Not authorised");
-  }
-  return session;
+  return requireActorRole("OPERATOR");
 }
 
 export async function enrollAction(locale: string, courseId: string) {

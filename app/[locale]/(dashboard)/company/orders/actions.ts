@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
-import { getSession } from "@/lib/auth/session";
+import { requireActorRole } from "@/lib/auth/guards";
 import { coordinatesFor } from "@/lib/locations";
 import { generateMatches } from "@/lib/matching/service";
 import { createBookingFromMatch } from "@/lib/escrow/service";
@@ -14,13 +14,10 @@ export type OrderActionResult =
   | { ok: false; error: string; fieldErrors?: Record<string, string> };
 
 async function requireCompany() {
-  const session = await getSession();
   // Membership, not the role being viewed: an owner who also places orders
-  // holds COMPANY while looking at their equipment dashboard.
-  if (!session || !session.roles.includes("COMPANY")) {
-    throw new Error("Not authorised");
-  }
-  return session;
+  // holds COMPANY while looking at their equipment dashboard. Read from the
+  // database so a role granted since sign-in counts straight away.
+  return requireActorRole("COMPANY");
 }
 
 async function assertOwnsOrder(orderId: string, companyId: string) {

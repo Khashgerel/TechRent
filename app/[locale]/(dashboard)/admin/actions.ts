@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
-import { getSession } from "@/lib/auth/session";
+import { requireActorRole } from "@/lib/auth/guards";
 import { postTransaction } from "@/lib/escrow/ledger";
 import {
   nextOrderStatuses,
@@ -28,11 +28,7 @@ export type AdminResult =
   | { ok: false; error: string; fieldErrors?: Record<string, string> };
 
 async function requireAdmin() {
-  const session = await getSession();
-  if (!session || !session.roles.includes("ADMIN")) {
-    throw new Error("Not authorised");
-  }
-  return session;
+  return requireActorRole("ADMIN");
 }
 
 /**
@@ -351,4 +347,50 @@ export async function setServiceRequestStatusAction(
   revalidatePath(`/${locale}/store/service`);
 
   return { ok: true };
+}
+
+// ───────────────────────── Equipment review ─────────────────────────
+
+/**
+ * Approves or rejects a machine waiting in `PENDING_REVIEW`.
+ *
+ * That status has existed since the first migration with nothing able to clear
+ * it, so listings from unverified owners would have sat invisible forever.
+ * This is the queue that lets them through.
+ */
+export async function reviewEquipmentAction(
+  locale: string,
+  equipmentId: string,
+  decision: "ACTIVE" | "INACTIVE",
+) {
+  const session = await requireAdmin();
+
+  const equipment = await db.equipment.findUnique({
+    where: { id: equipmentId },
+    select: { id: true, status: true, make: true, model: true, ownerId: true },
+  });
+
+  if (!equipment) return { ok: false as const, error: "notFound" };
+  if (equipment.status !== "PENDING_REVIEW") {
+    return { ok: false as const, error: "notPending" };
+  }
+
+  await db.$transaction(async (tx) => {
+    await tx.equipment.update({
+      where: { id: equipmentId },
+      data: { status: decision },
+    });
+
+    await audit(
+      tx,
+      session.uid,
+      decision === "ACTIVE" ? "equipment.approve" : "equipment.reject",
+      { type: "Equipment", id: equipmentId },
+      { name: `${equipment.make} ${equipment.model}` },
+    );
+  });
+
+  revalidatePath(`/${locale}/admin/equipment`);
+  revalidatePath(`/${locale}/admin`);
+  return { ok: true as const };
 }

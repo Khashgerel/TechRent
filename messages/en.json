@@ -74,11 +74,13 @@
       "transactions": "Transactions",
       "academy": "Academy content",
       "store": "Store",
-      "settings": "Settings"
+      "settings": "Settings",
+      "equipment": "Equipment review"
     },
     "store": "Parts store",
     "notifications": "Notifications",
-    "wallet": "Wallet"
+    "wallet": "Wallet",
+    "account": "Account"
   },
   "auth": {
     "loginTitle": "Sign in",
@@ -296,7 +298,8 @@
     "levelOrder": "Advanced must sit above intermediate.",
     "generic": "Something went wrong. Please try again.",
     "invalidPhone": "Enter an 8-digit phone number.",
-    "phoneTaken": "That number is already linked to another account."
+    "phoneTaken": "That number is already linked to another account.",
+    "pickOneCategory": "Pick at least one machine type."
   },
   "company": {
     "greeting": "Hello, {name}!",
@@ -863,7 +866,24 @@
       "part_update": "Part updated",
       "storeOrder_status": "Store order status",
       "serviceRequest_status": "Service request status",
-      "user_impersonate": "Signed in as another account"
+      "user_impersonate": "Signed in as another account",
+      "equipment_approve": "Approved a machine",
+      "equipment_reject": "Rejected a machine"
+    },
+    "equipment": {
+      "title": "Equipment review",
+      "subtitle": "Machines listed by owners who have not been verified yet.",
+      "empty": "Nothing waiting for review.",
+      "waiting": "Awaiting review",
+      "approve": "Approve",
+      "reject": "Reject",
+      "perDay": " / day",
+      "listed": "Listed {when}",
+      "errors": {
+        "notFound": "That machine no longer exists.",
+        "notPending": "That machine is no longer awaiting review.",
+        "generic": "That did not go through."
+      }
     }
   },
   "errors": {
@@ -942,6 +962,49 @@
     "errors": {
       "invalid": "Wrong username or password.",
       "locked": "Too many attempts. Try again shortly."
+    }
+  },
+  "account": {
+    "title": "Your account",
+    "subtitle": "What you are on TechRent, and what else you could be.",
+    "yourRoles": "Your roles",
+    "verified": "Verified",
+    "unverified": "Not yet verified",
+    "addRole": "Add a role",
+    "allRoles": "You already hold every role.",
+    "offers": {
+      "OWNER": "List machines and rent them out.",
+      "OPERATOR": "Take on work operating machines.",
+      "COMPANY": "Order machines and crews for your jobs."
+    },
+    "become": {
+      "OWNER": "Become an owner",
+      "OPERATOR": "Become an operator",
+      "COMPANY": "Add company details"
+    },
+    "owner": {
+      "title": "Become an equipment owner",
+      "subtitle": "A few details and you can start listing machines.",
+      "cardTitle": "Owner details",
+      "companyName": "Company name",
+      "regNumber": "Registration number",
+      "aimag": "Province / city",
+      "district": "District",
+      "bio": "About you",
+      "submit": "Become an owner"
+    },
+    "operator": {
+      "title": "Become an operator",
+      "subtitle": "Tell us what you can run and where, and you can start taking work.",
+      "cardTitle": "Operator details",
+      "skills": "Machines you can operate",
+      "yearsExperience": "Years of experience",
+      "dailyRate": "Day rate (₮)",
+      "aimag": "Province / city",
+      "district": "District",
+      "bio": "About you",
+      "available": "Available for work now",
+      "submit": "Become an operator"
     }
   }
 }

@@ -40,7 +40,13 @@ export async function requireRole(
 ): Promise<SessionPayload> {
   const session = await requireSession(locale);
   if (!roles.some((role) => session.roles.includes(role))) {
-    redirect(`/${locale}/${homeForRole(session.role)}`);
+    // Opening an area you don't hold yet is an interest in holding it, not a
+    // mistake — so offer the role rather than bouncing back to the dashboard.
+    // Staff are the exception: they are never offered a marketplace role.
+    if (session.roles.includes("ADMIN")) {
+      redirect(`/${locale}/${homeForRole(session.role)}`);
+    }
+    redirect(`/${locale}/account?want=${roles[0]}`);
   }
   return session;
 }
@@ -71,4 +77,37 @@ export async function currentUser() {
       companyProfile: true,
     },
   });
+}
+
+/**
+ * The roles the database says this account holds, for server actions.
+ *
+ * Server components go through `requireSession`, which already re-reads roles
+ * from the database. Actions cannot redirect, so they used to read
+ * `session.roles` straight off the cookie — which is a snapshot from sign-in
+ * time. Grant someone a role and their pages would work while every action
+ * refused, until they signed in again. Revoking one had the mirror problem.
+ *
+ * Returns null when there is no usable session, so callers can refuse.
+ */
+export async function actorWithRoles() {
+  const session = await getSession();
+  if (!session) return null;
+
+  const user = await db.user.findUnique({
+    where: { id: session.uid },
+    select: { roles: true, suspendedAt: true },
+  });
+  if (!user || user.suspendedAt) return null;
+
+  return { ...session, roles: user.roles };
+}
+
+/** `actorWithRoles`, refusing unless one of `roles` is held. */
+export async function requireActorRole(...roles: Role[]) {
+  const actor = await actorWithRoles();
+  if (!actor || !roles.some((role) => actor.roles.includes(role))) {
+    throw new Error("Not authorised");
+  }
+  return actor;
 }

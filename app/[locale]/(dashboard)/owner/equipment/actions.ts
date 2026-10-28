@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
-import { getSession } from "@/lib/auth/session";
+import { requireActorRole } from "@/lib/auth/guards";
 import { coordinatesFor } from "@/lib/locations";
 import {
   availabilityBlockSchema,
@@ -16,11 +16,9 @@ export type ActionResult =
   | { ok: false; error: string; fieldErrors?: Record<string, string> };
 
 async function requireOwner() {
-  const session = await getSession();
-  if (!session || !session.roles.includes("OWNER")) {
-    throw new Error("Not authorised");
-  }
-  return session;
+  // Roles from the database, not from the cookie: a role granted since
+  // sign-in must work immediately, without the person signing in again.
+  return requireActorRole("OWNER");
 }
 
 /** Confirms the equipment belongs to the signed-in owner before any write. */
@@ -67,6 +65,16 @@ export async function saveEquipmentAction(
 
   const specs = Object.fromEntries(data.specs.map((s) => [s.name, s.value]));
 
+  // An unverified owner's machines wait for an admin to look at them. The
+  // status the owner picked is kept for when they edit later — it is the
+  // *first* listing from an unproven account that needs a human, which is
+  // what A03 verification will eventually settle properly.
+  const owner = await db.user.findUniqueOrThrow({
+    where: { id: session.uid },
+    select: { verification: true },
+  });
+  const needsReview = owner.verification !== "VERIFIED";
+
   const payload = {
     category: data.category as never,
     make: data.make,
@@ -93,7 +101,13 @@ export async function saveEquipmentAction(
     await db.equipment.update({ where: { id: equipmentId }, data: payload });
   } else {
     const created = await db.equipment.create({
-      data: { ...payload, ownerId: session.uid },
+      data: {
+        ...payload,
+        ownerId: session.uid,
+        // Only a new listing is held: editing one already approved should not
+        // quietly pull it out of the market again.
+        ...(needsReview ? { status: "PENDING_REVIEW" as const } : {}),
+      },
     });
     id = created.id;
   }
