@@ -84,26 +84,8 @@
   },
   "auth": {
     "loginTitle": "Sign in",
-    "loginSubtitle": "Enter your phone number and we'll send a verification code.",
-    "phoneLabel": "Phone number",
-    "phonePlaceholder": "9911 2233",
-    "sendCode": "Send code",
-    "verifyTitle": "Enter code",
-    "verifySubtitle": "Enter the 4-digit code sent to {phone}.",
-    "codeLabel": "Verification code",
-    "verify": "Sign in",
-    "resend": "Resend",
-    "changePhone": "Change number",
-    "demoCodeNotice": "Demo mode: your code is {code}",
     "errors": {
-      "invalidPhone": "That phone number doesn't look right.",
-      "notRegistered": "This number isn't registered.",
-      "notFound": "No code found. Request a new one.",
-      "expired": "That code has expired.",
-      "mismatch": "That code is incorrect.",
-      "tooManyAttempts": "Too many attempts. Request a new code.",
       "suspended": "This account has been suspended.",
-      "phoneLoginDisabled": "Phone sign-in is turned off on this demo. Use the demo password.",
       "oauthDenied": "Sign-in was cancelled.",
       "oauthState": "That sign-in link expired. Please try again.",
       "oauthProfile": "We could not read your profile from that provider.",
@@ -111,19 +93,6 @@
     },
     "orContinueWith": "or continue with",
     "socialOnlySubtitle": "Sign in with Google or Facebook to create your own account."
-  },
-  "demo": {
-    "title": "Demo mode",
-    "subtitle": "Pick a role to sign in instantly. All data shown is sample data.",
-    "loginAs": "Sign in as {name}",
-    "gatedSubtitle": "Pick a role, then enter the demo password.",
-    "passwordLabel": "Demo password",
-    "passwordPlaceholder": "Enter the password",
-    "pickRole": "Pick a role to continue.",
-    "errors": {
-      "wrongPassword": "That password is incorrect.",
-      "noPersona": "That demo account is no longer available."
-    }
   },
   "landing": {
     "heroTitle": "Equipment, operators and clients in one place",

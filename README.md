@@ -29,7 +29,14 @@ npm run db:start
 `db:start` runs Prisma's bundled Postgres and **must stay in its own terminal** —
 if the shell that launched it exits, the server is reaped and every query fails.
 It prints the connection string; put that in `.env` as `DATABASE_URL`, alongside
-a `SESSION_SECRET` (`openssl rand -base64 32`) and `DEMO_MODE="true"`.
+a `SESSION_SECRET` (`openssl rand -base64 32`). The ports it prints are not
+always the ones it printed last time, so check them when queries start
+refusing.
+
+Signing in needs one of two things: a Google client id and secret for
+marketplace accounts (see [docs/deploy.md](docs/deploy.md)), or a staff account
+created with `npm run admin:create` — the only thing in the project that can set
+a staff password.
 
 > **Check what `DATABASE_URL` points at before running anything that writes.**
 > If it holds the Neon string, `db:reset` and `db:seed` wipe the live demo

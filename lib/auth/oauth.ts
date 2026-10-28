@@ -66,7 +66,7 @@ function credentialsFor(provider: OAuthProvider) {
  *
  * Sign-in buttons are only rendered for providers that answer true, so the
  * feature ships dormant and turns itself on when the secrets are added —
- * the same shape as `qpayConfigured` and `demoGateEnabled`.
+ * the same shape as `qpayConfigured`.
  */
 export function providerConfigured(provider: OAuthProvider) {
   const { clientId, clientSecret } = credentialsFor(provider);

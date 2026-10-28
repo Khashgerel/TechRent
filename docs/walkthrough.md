@@ -31,9 +31,20 @@ not five minutes prior. Then:
 npm run dev
 ```
 
-Open `http://localhost:3000/mn/demo` and leave it on screen. Mongolian is the
-default; the toggle at the top right switches to English — worth flipping once
-early so the room knows it is there.
+There is no demo picker any more, so you need a staff account before you can
+show anything:
+
+```bash
+npm run admin:create
+```
+
+It prints which database it is about to touch, then asks for a username,
+display name and password. Nothing else in the project can set a staff
+password, and none is ever seeded.
+
+Open `http://localhost:3000/mn/staff-login`, sign in, and leave the admin
+console on screen. Mongolian is the default; the toggle at the top right
+switches to English — worth flipping once early so the room knows it is there.
 
 ## The setup line
 
@@ -47,25 +58,47 @@ early so the room knows it is there.
 
 ## Step 1 — Register
 
-**Screen:** `/mn/demo`
+**Screen:** `/mn/login`
 
-Four seeded personas, one per role. Point out that this page exists only because
-this is a demo: in production these are phone-number sign-ups with an SMS code.
+Sign-in is Google (and Facebook once its app is approved). Signing up asks for
+nothing beyond what the provider returns.
 
-> "Registration is phone plus a one-time code. Because there's no SMS gateway
-> wired up, demo mode shows the code on screen instead of texting it."
+> "Anyone can sign up in one click. We ask for nothing up front — no forms, no
+> documents. You arrive as a client and you can search immediately."
 
-**Optional stop (30 seconds):** click *Эсвэл утасны дугаараар нэвтрэх* and enter
-`99112233` to show the real OTP screen with the code displayed, then go back.
+**Then show how a role is earned.** Open **Миний бүртгэл / Account**. A new
+account holds the client role and is offered two more.
 
-**Then show the other half of registration** — sign in as **Системийн админ**
-and open **Хэрэглэгчид / Users**. Three accounts are sitting in the verification
-queue with their business registration details.
+> "If you own machines, or you operate them, you say so here and fill in that
+> section's form. The role is granted straight away — but the account is marked
+> unverified, and that matters in a moment."
+
+Open **Техник эзэмшигч болох**, fill it in, and point out the sidebar growing a
+whole new section.
+
+**Then the review half** — go back to the admin console and open
+**Хэрэглэгчид / Users**. Accounts are sitting in the verification queue with
+their business registration details. Open **Техник хянах / Equipment review**
+too: machines listed by unverified owners wait here before they can be found.
 
 > "New accounts don't go live on their own. An administrator checks the company
 > registration number and approves them — that's the queue."
 
 Verify one. Note the badge flip and that the account holder is notified.
+
+### Moving between accounts
+
+The rest of this script hops between an owner, an operator and a client. From
+**Хэрэглэгчид / Users**, the **Нэвтрэх** button on any account signs you in as
+them — an amber banner across the top says whose account you are in and who you
+really are, and **Админ руу буцах** brings you back. Every hop is written to the
+audit trail, and staff accounts cannot be impersonated.
+
+> "This is how we support customers — and how I'm about to show you three sides
+> of the same transaction without juggling three logins."
+
+Mention, if asked: the seeded accounts have no email and no password of their
+own, so this is the only way into them. That is deliberate.
 
 ## Step 2 — Order
 
@@ -89,7 +122,8 @@ escrow** — say so as you click, because it is the first money movement.
 
 ## Step 3 — Completion
 
-Three sign-ins, quick ones. Use the persona switcher on `/mn/demo`.
+Three accounts, quick hops. Impersonate each from **Хэрэглэгчид / Users**,
+and use **Админ руу буцах** between them.
 
 1. **Owner** (Батболд Дорж) → **Захиалга / Bookings**: the new request is
    waiting. Confirm it.

@@ -130,17 +130,6 @@ model OAuthAccount {
   @@index([userId])
 }
 
-model OtpCode {
-  id         String    @id @default(cuid())
-  phone      String
-  codeHash   String
-  expiresAt  DateTime
-  consumedAt DateTime?
-  attempts   Int       @default(0)
-  createdAt  DateTime  @default(now())
-
-  @@index([phone, expiresAt])
-}
 
 model OwnerProfile {
   id     String @id @default(cuid())

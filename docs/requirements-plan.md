@@ -382,8 +382,10 @@ pass on the new screens, then migrate and reseed Neon.
 ## What is deliberately not built
 
 - **E09 accounting-software integration** — the spreadsheet marks it future phase.
-- **Real SMS and email** for A01. The demo keeps on-screen OTP codes
-  (`DEMO_MODE`); `lib/auth/otp.ts` already marks where a gateway send would go.
+- **Real SMS and email** for A01. Phone + OTP was removed entirely in the auth
+  rework (`docs/auth-rework-plan.md`) — it could never send a code without a
+  gateway. Sign-in is a social provider for marketplace accounts and a username
+  and password for staff.
 - **Realtime chat.** C07 ships as request–response, per Phase 13.
 - **Withdrawals.** `TransactionType.WITHDRAWAL` exists in the enum and no code
   posts it. The spreadsheet asks for payout *allocation* (E05, done), not for

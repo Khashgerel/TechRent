@@ -82,7 +82,7 @@ async function reset() {
     db.ownerProfile.deleteMany(),
     db.companyProfile.deleteMany(),
     db.auditLog.deleteMany(),
-    db.otpCode.deleteMany(),
+    db.loginAttempt.deleteMany(),
     db.user.deleteMany(),
     db.platformSettings.deleteMany(),
   ]);
@@ -187,6 +187,11 @@ async function seedUsers() {
       data: {
         phone: admin.phone,
         name: admin.name,
+        // A username but deliberately no password: staff sign in at
+        // /[locale]/staff-login, and the only thing that can set a password is
+        // `npm run admin:create`. Seeding one would put a known credential on
+        // a public URL.
+        username: admin.username,
         roles: ["ADMIN"],
         activeRole: "ADMIN",
         ...verified,

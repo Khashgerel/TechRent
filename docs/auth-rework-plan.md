@@ -59,7 +59,7 @@ payload carrying the impersonator's id, scrypt parameters, and **DB-backed**
 login throttling — in-memory counters are useless on Vercel, where consecutive
 requests may hit different lambdas.
 
-## Stage 1 — the new door
+## Stage 1 — the new door  ✅ deployed 2026-10-28
 
 Nothing is removed. Demo mode keeps working throughout, as the fallback.
 
@@ -82,7 +82,7 @@ Nothing is removed. Demo mode keeps working throughout, as the fallback.
 Батболд from the console, act as him, and leave again — with the demo picker
 still sitting there untouched.
 
-## Stage 2 — the new on-ramps
+## Stage 2 — the new on-ramps  ✅ deployed 2026-10-28
 
 Still nothing removed.
 
@@ -99,7 +99,7 @@ Still nothing removed.
 *Done when:* a fresh Google account becomes an owner and an operator by filling
 two forms, and an admin approves its first machine.
 
-## Stage 3 — the demolition
+## Stage 3 — the demolition  — built, not deployed
 
 The irreversible one.
 

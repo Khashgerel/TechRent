@@ -226,5 +226,5 @@ export const COMPANIES: CompanySeed[] = [
 ];
 
 export const ADMINS = [
-  { phone: "70001111", name: "Системийн админ" },
+  { phone: "70001111", name: "Системийн админ", username: "admin" },
 ];

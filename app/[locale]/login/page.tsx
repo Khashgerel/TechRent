@@ -1,15 +1,12 @@
 import { redirect } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { Link } from "@/i18n/navigation";
 import { AuthCard, AuthLayout } from "@/components/auth/auth-card";
 import { OAuthButtons } from "@/components/auth/oauth-buttons";
 import { Alert } from "@/components/ui/feedback";
-import { phoneLoginBlocked } from "@/lib/auth/demo-gate";
 import { oauthEnabled } from "@/lib/auth/oauth";
-import { LoginForm } from "./login-form";
 
 // Reads environment variables to decide what to render, so it cannot be
-// prerendered into a static page that answers from the wrong side of the gate.
+// prerendered into a page that answers from the wrong side of the config.
 export const dynamic = "force-dynamic";
 
 const ERRORS = new Set([
@@ -20,6 +17,13 @@ const ERRORS = new Set([
   "suspended",
 ]);
 
+/**
+ * Signing in to the marketplace.
+ *
+ * Social sign-in only: phone + OTP was removed with demo mode, because it
+ * could never send a code without an SMS gateway. Staff sign in separately at
+ * `/[locale]/staff-login` with a username and password.
+ */
 export default async function LoginPage({
   params,
   searchParams,
@@ -27,48 +31,26 @@ export default async function LoginPage({
   const { locale } = await params;
   setRequestLocale(locale);
 
-  const phoneBlocked = phoneLoginBlocked();
-  const social = oauthEnabled();
-
-  // With the demo password up and no social provider configured there is
-  // nothing to show here, so the demo picker is the only way in.
-  if (phoneBlocked && !social) redirect(`/${locale}/demo`);
+  // With no provider configured there is no way to sign in at all, which is a
+  // deployment problem rather than something to render a dead page for.
+  if (!oauthEnabled()) redirect(`/${locale}/staff-login`);
 
   const { error: rawError } = await searchParams;
-  const error = typeof rawError === "string" && ERRORS.has(rawError)
-    ? rawError
-    : null;
+  const error =
+    typeof rawError === "string" && ERRORS.has(rawError) ? rawError : null;
 
   const t = await getTranslations("auth");
-  const tDemo = await getTranslations("demo");
 
   return (
     <AuthLayout>
-      <AuthCard
-        title={t("loginTitle")}
-        description={phoneBlocked ? t("socialOnlySubtitle") : t("loginSubtitle")}
-        footer={
-          <Link
-            href="/demo"
-            className="text-[13px] font-bold text-brand-600 hover:text-brand-700"
-          >
-            {tDemo("title")} →
-          </Link>
-        }
-      >
+      <AuthCard title={t("loginTitle")} description={t("socialOnlySubtitle")}>
         {error ? (
           <Alert tone="critical" className="mb-5">
             {t(`errors.${error}`)}
           </Alert>
         ) : null}
 
-        {phoneBlocked ? null : <LoginForm />}
-
-        {social ? (
-          <div className={phoneBlocked ? "" : "mt-6"}>
-            <OAuthButtons locale={locale} label={t("orContinueWith")} />
-          </div>
-        ) : null}
+        <OAuthButtons locale={locale} label={t("orContinueWith")} />
       </AuthCard>
     </AuthLayout>
   );

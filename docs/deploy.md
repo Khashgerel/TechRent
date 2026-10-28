@@ -51,8 +51,6 @@ Development. For a new environment:
 |---|---|
 | `DATABASE_URL` | The Neon **pooled** connection string |
 | `SESSION_SECRET` | 32+ random bytes — `openssl rand -base64 32` |
-| `DEMO_MODE` | `true` — shows OTP codes in the UI instead of sending SMS |
-| `DEMO_PASSWORD` | Optional. Puts one shared password in front of the demo personas |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Optional. Enables Google sign-in |
 | `FACEBOOK_CLIENT_ID` / `FACEBOOK_CLIENT_SECRET` | Optional. Enables Facebook sign-in |
 | `OAUTH_BASE_URL` | Optional. Overrides the callback origin — only needed behind a tunnel |
@@ -60,20 +58,15 @@ Development. For a new environment:
 `SESSION_SECRET` signs the session cookie (`lib/auth/session.ts`). Changing it
 invalidates every existing session, which is a fine way to sign everyone out.
 
-Keep `DEMO_MODE=true` for anything investor-facing: without it, sign-in needs an
-SMS gateway that does not exist yet.
+Demo mode and phone sign-in were removed in the auth rework
+(`docs/auth-rework-plan.md`). The only ways in are a social provider for
+marketplace accounts and `/[locale]/staff-login` for staff. **No staff password
+is ever seeded** — `npm run admin:create` is the only thing that sets one, so a
+fresh environment needs it run before anyone can sign in as staff.
 
-`DEMO_PASSWORD` locks a publicly reachable demo (`lib/auth/demo-gate.ts`).
-Setting it does two things at once, and the second is the point: the persona
-cards ask for the password, **and phone sign-in is switched off** — `/login` and
-`/verify` redirect to `/demo`, and both actions refuse. That pairing is not
-optional, because the seeded phone numbers are committed in
-`prisma/seed/people.ts` and demo mode prints the OTP on screen, so leaving the
-phone door open would walk straight around the password.
-
-The block is tied to demo mode, so a real deployment — `DEMO_MODE=false`, codes
-going out by SMS — keeps phone sign-in no matter what the password is set to.
-Leave `DEMO_PASSWORD` unset to go back to one-click personas.
+The seeded accounts have no email and no linked social identity, so they are
+reachable **only** by staff impersonation from the admin user list. That is
+deliberate, and it is why staff sign-in shipped before any of this was removed.
 
 ## 3. Deploy
 
