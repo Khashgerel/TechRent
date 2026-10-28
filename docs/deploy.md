@@ -128,17 +128,35 @@ Google and Facebook sign-in ships dormant: `lib/auth/oauth.ts` renders a button
 only for a provider that has **both** halves of its credential set, so with no
 variables there is nothing to see and nothing to break.
 
-Register these redirect URIs with each provider, matching the deployed origin
-exactly — a mismatch is the single most common cause of a failed sign-in:
+**This project has two production URLs**, and both serve the app:
+
+- `tech-rent-hazel.vercel.app` — the project's production domain
+- `tech-rent-khashgerel-nomuungerels-projects.vercel.app` — the team alias
+
+The origin is taken from `OAUTH_BASE_URL`, else `VERCEL_PROJECT_PRODUCTION_URL`,
+else the request host. Left to Vercel it would resolve to the first of those,
+which is *not* the URL the demo is usually shared as — so `OAUTH_BASE_URL` is
+set explicitly to pin it:
 
 ```
-https://<your-domain>/api/auth/google/callback
-https://<your-domain>/api/auth/facebook/callback
+OAUTH_BASE_URL = https://tech-rent-hazel.vercel.app
 ```
 
-The origin is taken from `OAUTH_BASE_URL`, else Vercel's own
-`VERCEL_PROJECT_PRODUCTION_URL`, else the request host — so on Vercel it needs
-no configuration, and `OAUTH_BASE_URL` exists for tunnelled local testing.
+Register exactly these, character for character and with no trailing slash — a
+mismatch is the single most common cause of a failed sign-in, and it fails the
+same way every time (`redirect_uri_mismatch`):
+
+```
+https://tech-rent-hazel.vercel.app/api/auth/google/callback
+https://tech-rent-hazel.vercel.app/api/auth/facebook/callback
+```
+
+Change `OAUTH_BASE_URL` and the registered URIs together, never one alone.
+
+A Google consent screen starts in **Testing** mode, where only the emails added
+as test users can sign in — useful if the demo should stay invitation-only, and
+**Publish app** opens it to anyone. An app asking only for email and profile,
+as this one does, needs no verification review.
 
 Two things worth knowing before pointing anyone at Facebook. A Facebook app
 stays in development mode until it passes review, during which only its own
