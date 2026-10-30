@@ -7,6 +7,7 @@ export default async function IndexPage({ params }: PageProps<"/[locale]">) {
   const session = await getSession();
 
   // The marketing landing page lands in a later phase; until then the root
-  // sends you where you can actually do something.
-  redirect(session ? `/${locale}/${homeForRole(session.role)}` : `/${locale}/demo`);
+  // sends you where you can actually do something. Signing in is that place now
+  // that the demo picker is gone — pointing at `/demo` 404'd.
+  redirect(session ? `/${locale}/${homeForRole(session.role)}` : `/${locale}/login`);
 }

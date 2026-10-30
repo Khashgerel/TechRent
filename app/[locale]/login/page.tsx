@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { AuthCard, AuthLayout } from "@/components/auth/auth-card";
 import { OAuthButtons } from "@/components/auth/oauth-buttons";
+import { LegalLinks } from "@/components/legal/legal-links";
 import { Alert } from "@/components/ui/feedback";
 import { oauthEnabled } from "@/lib/auth/oauth";
 
@@ -43,7 +44,11 @@ export default async function LoginPage({
 
   return (
     <AuthLayout>
-      <AuthCard title={t("loginTitle")} description={t("socialOnlySubtitle")}>
+      <AuthCard
+        title={t("loginTitle")}
+        description={t("socialOnlySubtitle")}
+        footer={<LegalLinks />}
+      >
         {error ? (
           <Alert tone="critical" className="mb-5">
             {t(`errors.${error}`)}

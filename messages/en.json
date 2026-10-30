@@ -862,7 +862,7 @@
     "reference": "Reference: {id}",
     "notFoundTitle": "That page does not exist",
     "notFoundBody": "The link may be out of date, or the record it pointed at is gone.",
-    "backToDemo": "Back to the demo"
+    "backToLogin": "Back to sign-in"
   },
   "wallet": {
     "title": "Wallet",
@@ -975,5 +975,209 @@
       "available": "Available for work now",
       "submit": "Become an operator"
     }
+  },
+  "legal": {
+    "updated": "Last updated: 30 October 2026",
+    "demoNoticeTitle": "This is a demonstration platform",
+    "demoNoticeBody": "TechRent currently runs for demonstration and evaluation purposes. The equipment, orders and reviews in the system are fictional, and payments are simulated through QPay's sandbox — no real funds move. A booking made here therefore creates no legally binding rental agreement.",
+    "contactTitle": "Contact",
+    "contactBody": "Send questions or requests about privacy and these terms through the platform, or to the address below.",
+    "contactEmail": "privacy@techrent.mn",
+    "backToLogin": "Back to sign-in",
+    "privacyTitle": "Privacy policy",
+    "privacyIntro": "This policy explains what personal information TechRent collects, why it is used, who sees it and how long it is kept. By signing in to the platform you confirm that you have read it.",
+    "privacySections": [
+      {
+        "title": "1. Who we are",
+        "body": [
+          "TechRent is a digital marketplace that connects equipment owners, operators and corporate clients on one platform. In this policy, \"we\" means TechRent and \"you\" means a registered user of the platform.",
+          "The policy covers the platform's website and your account, orders and rentals on it."
+        ]
+      },
+      {
+        "title": "2. What we collect when you sign in",
+        "body": [
+          "You sign in with a Google or Facebook account. The provider passes us its own unique identifier for you, your name, your email address and a link to your profile picture if you have one.",
+          "We never see or receive your password, and we do not store the provider's access token: the provider is asked who you are once, at sign-in, and we never make a request on your behalf afterwards.",
+          "If a Facebook account has no verified email address, or you decline the email permission, the account is created without an email address."
+        ]
+      },
+      {
+        "title": "3. Profile and role information",
+        "body": [
+          "A new account starts with the client role only. To place an order you fill in your company name, registration number, province or district, and contact details.",
+          "Becoming an equipment owner asks for a company name, registration number, location and a short description; becoming an operator asks for years of experience, the machine categories you work with, your day rate, your location, your availability and a short description.",
+          "You enter this information yourself and can change it from your profile at any time. A role is granted as soon as the form is saved, and starts out marked as unverified."
+        ]
+      },
+      {
+        "title": "4. Equipment, booking and payment information",
+        "body": [
+          "When you list a machine we store its category, specifications, rental rates, location coordinates and photos. Photos are downscaled in your browser before being stored in the database.",
+          "We keep a record of your activity on the platform: orders, matches, the progress of a rental, ratings and reviews, notifications, wallet transactions and ledger entries.",
+          "Topping up the wallet creates a payment request in QPay's sandbox. We never receive or store your card or bank account numbers."
+        ]
+      },
+      {
+        "title": "5. Technical information and cookies",
+        "body": [
+          "The platform uses exactly one cookie: techrent_session, which is cryptographically signed and identifies your signed-in session. It is strictly necessary to run the service, so no consent is requested for it.",
+          "We use no analytics, advertising or third-party tracking cookies.",
+          "Failed sign-in attempts are recorded for a limited period together with the username and IP address. The purpose is to rate-limit password guessing."
+        ]
+      },
+      {
+        "title": "6. Why we use this information",
+        "body": [
+          "To find and rank equipment and operators that match an order; to run a rental through its stages; to calculate escrow, commission and settlement; to deliver notifications; to verify accounts and equipment; to protect against fraudulent and unlawful activity; and to handle your requests and complaints.",
+          "We do not use your information for advertising and we do not sell it to third parties."
+        ]
+      },
+      {
+        "title": "7. Who can see your information",
+        "body": [
+          "Parties working together on one booking see as much as the booking requires: the client company sees who the equipment owner and operator are, and the owner and operator see who the client is.",
+          "Platform staff access information in order to run the service, carry out verification and resolve complaints.",
+          "Service providers: hosting runs on Vercel and the database on Neon (Singapore); Google and Facebook at sign-in; QPay's sandbox for wallet top-ups. Note that data is therefore stored outside Mongolia."
+        ]
+      },
+      {
+        "title": "8. Staff acting on behalf of an account",
+        "body": [
+          "Where necessary, a member of platform staff can enter a user's account and act on their behalf. Such a session expires automatically after one hour.",
+          "Who did this, when, and to which account is written to an audit log. A banner is also shown on screen while such a session is in progress."
+        ]
+      },
+      {
+        "title": "9. How long we keep it",
+        "body": [
+          "Profile, equipment and booking information is kept for as long as your account is open.",
+          "Ledger entries are not deleted: a wallet balance is derived by summing them, which makes them the service's accounting record.",
+          "Records of sign-in attempts are kept only for as long as the rate limit needs them."
+        ]
+      },
+      {
+        "title": "10. Your rights",
+        "body": [
+          "You have the right to see the information we hold about you, to correct it, to have it deleted, and to object to particular uses. Most profile and equipment information can be edited directly on the platform.",
+          "Send a request to close your account or delete your information to the contact address below. Where a record must be retained and cannot be deleted, we will explain why.",
+          "Your rights under Mongolia's Law on Personal Data Protection apply in full."
+        ]
+      },
+      {
+        "title": "11. Security",
+        "body": [
+          "Session cookies are cryptographically signed, staff passwords are hashed with scrypt, sign-in attempts are rate-limited, and connections run over HTTPS.",
+          "To be straightforward about one limit: photos and documents are stored in the database itself rather than on separate file storage. That is appropriate at demonstration volume and will change before real-world use."
+        ]
+      },
+      {
+        "title": "12. Changes to this policy",
+        "body": [
+          "If this policy is updated, the date shown on this page changes with it. Material changes to how information is used will be announced inside the platform."
+        ]
+      }
+    ],
+    "termsTitle": "Terms of service",
+    "termsIntro": "These terms set out how the TechRent platform may be used and what each party is responsible for. By signing in to the platform you accept them.",
+    "termsSections": [
+      {
+        "title": "1. What TechRent does and does not do",
+        "body": [
+          "TechRent is an intermediary platform: it connects equipment owners, operators and client companies, ranks and offers equipment that matches an order, tracks a rental through its stages, and holds payment in escrow.",
+          "TechRent does not own the equipment, does not employ the operators, and is not a party to the rental agreement. The rental agreement is between the client company, the equipment owner and the operator.",
+          "Because the platform currently runs for demonstration purposes, an order or rental created here creates no legal obligation."
+        ]
+      },
+      {
+        "title": "2. Your account",
+        "body": [
+          "An account is created with a Google or Facebook account. One person uses one account.",
+          "You are responsible for what happens under your account. Do not let anyone else use it.",
+          "Platform staff sign in on a separate page with a username and password, and a staff account is never held alongside the client, owner or operator roles."
+        ]
+      },
+      {
+        "title": "3. Roles and verification",
+        "body": [
+          "A new account starts with the client role. The equipment owner and operator roles are earned by completing the form for each one. A single account may hold all three at once.",
+          "The information you enter in those forms must be accurate. False information is grounds for revoking a role and closing the account.",
+          "A newly granted role is unverified. The platform may verify it or refuse it. An unverified owner's equipment does not appear in listings until it has been reviewed."
+        ]
+      },
+      {
+        "title": "4. Listing equipment",
+        "body": [
+          "List only equipment you own or are entitled to rent out.",
+          "Keeping specifications, rental rates, location and availability accurate and up to date is the owner's responsibility.",
+          "Photos you upload must be your own, or ones you have the right to use."
+        ]
+      },
+      {
+        "title": "5. Orders, matching and rentals",
+        "body": [
+          "A client company creates an order with the type of work, the dates, the location and its budget. The platform ranks and offers matching equipment and operators, and shows the ranking factors on each offer.",
+          "Accepting an offer creates a booking, which takes effect when the equipment owner confirms it. The stages that follow — work starting, finishing and being accepted — are recorded on the platform.",
+          "The amount shown on an offer is a quote. If the conditions of the job change, the parties agree again on the platform."
+        ]
+      },
+      {
+        "title": "6. Wallet, escrow and commission",
+        "body": [
+          "Payment runs through the platform wallet. When a booking is created the amount is held in escrow, and once the work has been accepted it is distributed between the owner, the operator and the platform.",
+          "The platform's commission rate is shown clearly on each booking. The operator's share is set by the platform.",
+          "On this demonstration platform the money is simulated: wallet top-ups run through QPay's sandbox and no real funds move."
+        ]
+      },
+      {
+        "title": "7. Cancellation",
+        "body": [
+          "Cancelling a booking returns the full amount held in escrow to the client's wallet. No cancellation fee is charged at present.",
+          "If the cancellation terms change, it will be announced inside the platform and this page updated."
+        ]
+      },
+      {
+        "title": "8. Acceptable use",
+        "body": [
+          "The following are prohibited: entering false information, impersonating someone else, arranging work off-platform in order to avoid commission, copying platform data without permission, interfering with how the system runs, and harvesting information automatically.",
+          "Operating equipment without the required permits or licences, and breaching safety requirements, are prohibited.",
+          "Where these terms are breached, the platform may suspend an account, revoke a role, and remove equipment from listings."
+        ]
+      },
+      {
+        "title": "9. Ratings and reviews",
+        "body": [
+          "After a rental ends, the parties rate each other. A rating must be based on real experience and must be accurate.",
+          "The platform may remove abusive, false or irrelevant reviews."
+        ]
+      },
+      {
+        "title": "10. Closing an account",
+        "body": [
+          "You may ask for your account to be closed at any time. If a rental is still in progress, closure waits until it is resolved.",
+          "The platform may suspend an account that has breached these terms or been used unlawfully, without prior notice."
+        ]
+      },
+      {
+        "title": "11. Limitation of liability",
+        "body": [
+          "The platform is provided as is. TechRent does not warrant the actual condition of equipment, the quality of work performed, an operator's competence, or that the parties will perform their agreement.",
+          "TechRent is not liable for loss, cost, downtime or lost profit arising from a rental. The parties settle such matters directly between themselves.",
+          "Data on this demonstration platform is fictional and may be changed or deleted at any time."
+        ]
+      },
+      {
+        "title": "12. Governing law",
+        "body": [
+          "These terms are governed by the law of Mongolia. Disputes not settled by negotiation are to be resolved by the courts of Mongolia."
+        ]
+      },
+      {
+        "title": "13. Changes to these terms",
+        "body": [
+          "If these terms are updated, the date shown on this page changes with it. Material changes will be announced inside the platform. Using the platform after an update means accepting the updated terms."
+        ]
+      }
+    ]
   }
 }

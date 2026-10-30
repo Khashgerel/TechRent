@@ -7,7 +7,7 @@ import { EmptyState } from "@/components/ui/feedback";
 
 /**
  * A wrong URL inside a locale. Rendered outside the dashboard shell, so it
- * carries its own header and a way back to the demo entry point.
+ * carries its own header and a way back to signing in.
  */
 export default async function LocaleNotFound() {
   const t = await getTranslations("errors");
@@ -22,8 +22,8 @@ export default async function LocaleNotFound() {
         title={t("notFoundTitle")}
         description={t("notFoundBody")}
         action={
-          <Link href="/demo" className={buttonVariants({ size: "sm" })}>
-            {t("backToDemo")}
+          <Link href="/login" className={buttonVariants({ size: "sm" })}>
+            {t("backToLogin")}
           </Link>
         }
       />

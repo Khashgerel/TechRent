@@ -1,15 +1,11 @@
-import { Logo } from "@/components/shell/logo";
-import { LanguageSwitcher } from "@/components/shell/language-switcher";
+import { PublicHeader } from "@/components/shell/public-header";
 
 export function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative flex min-h-dvh flex-col bg-canvas bg-grid">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-80 bg-gradient-to-b from-brand-100/70 to-transparent" />
 
-      <header className="relative flex h-16 items-center justify-between px-5 sm:px-8">
-        <Logo />
-        <LanguageSwitcher />
-      </header>
+      <PublicHeader />
 
       <main className="relative flex flex-1 items-center justify-center px-5 pb-16">
         {children}
